@@ -86,19 +86,30 @@ const SpeechEngine = (() => {
     });
   }
 
-  // terms: [{value, op}]  -> 「12」「たして 34」「ひいて 5」...「ぜんぶで いくつ？」を順に読み上げる
+  // 読み上げ算の伝統的な言い回しで読み上げる
+  // 「ねがいましては」→ 1口目「◯円なり」→ 中間「◯円加えて/◯円引いては」→ 最後「◯円では」→「おいくらでしょう」
   async function speakProblem(terms, rate, pauseMs, isCancelled) {
     window.speechSynthesis && window.speechSynthesis.cancel();
+
+    await speakOne('ねがいましては', rate);
+    if (isCancelled()) return;
+    await sleep(pauseMs);
+
     for (let i = 0; i < terms.length; i++) {
       if (isCancelled()) return;
       const t = terms[i];
-      const text = i === 0 ? `${t.value}` : (t.op === '+' ? `たして ${t.value}` : `ひいて ${t.value}`);
+      const isLast = i === terms.length - 1;
+      let text;
+      if (isLast) text = `${t.value}円では`;
+      else if (i === 0) text = `${t.value}円なり`;
+      else text = t.op === '+' ? `${t.value}円加えて` : `${t.value}円引いては`;
+
       await speakOne(text, rate);
       if (isCancelled()) return;
       await sleep(pauseMs);
     }
     if (isCancelled()) return;
-    await speakOne('ぜんぶで、いくつ？', rate);
+    await speakOne('おいくらでしょう', rate);
   }
 
   function cancel() {
