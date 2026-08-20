@@ -68,6 +68,18 @@ function initNav() {
   $('#btn-retry').addEventListener('click', () => { SoundFX.click(); startSession(); });
   $('#btn-to-mode').addEventListener('click', () => { SoundFX.click(); showScreen('screen-mode'); });
   $('#btn-to-title').addEventListener('click', () => { SoundFX.click(); showScreen('screen-title'); });
+
+  $('#btn-quit').addEventListener('click', () => {
+    SoundFX.click();
+    quitSession();
+  });
+}
+
+// 出題の途中でも抜けられるように、進行中の非同期処理を止めて級選択に戻る
+function quitSession() {
+  state.sessionToken++;
+  SpeechEngine.cancel();
+  showScreen('screen-level');
 }
 
 /* ---------- キーパッド ---------- */
