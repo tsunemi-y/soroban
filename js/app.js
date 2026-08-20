@@ -178,7 +178,8 @@ async function playFlashSequence(terms, interval, token) {
     if (token !== state.sessionToken) return;
     const t = terms[i];
     const sign = i > 0 && t.op === '-' ? '－' : '';
-    el.innerHTML = `<span class="flash-number ${t.op === '-' ? 'op-minus' : ''}">${sign}${t.value}</span>`;
+    el.innerHTML = `<span class="flash-number">${sign}${t.value}</span>`;
+    SoundFX.tick();
     await sleep(showMs);
     if (token !== state.sessionToken) return;
     el.innerHTML = '';

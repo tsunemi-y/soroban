@@ -262,8 +262,6 @@ html, body {
   text-shadow: 3px 3px 0 rgba(0,0,0,0.6);
   font-family: 'Consolas', 'DotGothic16', monospace;
 }
-.flash-number.op-minus { color: #ff6b6b; }
-
 .yomiage-display {
   display: none;
   flex-direction: column;
