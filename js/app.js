@@ -99,10 +99,25 @@ function renderAnswer() {
   $('#answer-display').textContent = state.answerStr === '' ? '0' : state.answerStr;
 }
 
+function buildSessionProblems(levelKey) {
+  const level = LEVELS[levelKey];
+  if (level.sessionPlan) {
+    const problems = [];
+    level.sessionPlan.forEach(block => {
+      for (let i = 0; i < block.count; i++) {
+        problems.push(generateProblem(levelKey, block.allowSubtract));
+      }
+    });
+    return problems;
+  }
+  return Array.from({ length: PROBLEM_COUNT }, () => generateProblem(levelKey));
+}
+
 /* ---------- セッション進行 ---------- */
 function startSession() {
   state.sessionToken++;
-  state.problems = Array.from({ length: state.count }, () => generateProblem(state.level));
+  state.problems = buildSessionProblems(state.level);
+  state.count = state.problems.length;
   state.index = 0;
   state.score = 0;
   $('#hud-level').textContent = LEVELS[state.level].name + (state.mode === 'flash' ? ' フラッシュ' : ' よみあげ');

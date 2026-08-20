@@ -15,8 +15,11 @@ function pickDigits(digitsConfig) {
 }
 
 // terms: [{ value:number, op:'+'|'-' }], answer: number
-function generateProblem(levelKey) {
+// allowSubtractOverride を渡すと、その問題だけ level.allowSubtract の設定を上書きできる
+// (例: 3級の「加算のみ3問+加減算3問」のような構成に使う)
+function generateProblem(levelKey, allowSubtractOverride) {
   const level = LEVELS[levelKey];
+  const allowSubtract = allowSubtractOverride !== undefined ? allowSubtractOverride : level.allowSubtract;
   const terms = [];
   let total = 0;
 
@@ -24,7 +27,7 @@ function generateProblem(levelKey) {
     const value = randDigitsValue(pickDigits(level.digits));
     let op = '+';
 
-    if (i > 0 && level.allowSubtract && Math.random() < 0.4 && value <= total) {
+    if (i > 0 && allowSubtract && Math.random() < 0.4 && value <= total) {
       op = '-';
     }
 
