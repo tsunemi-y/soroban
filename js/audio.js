@@ -88,7 +88,7 @@ const SpeechEngine = (() => {
 
   // 読み上げ算の伝統的な言い回しで読み上げる
   // 「ねがいましては」→ 1口目「◯円なり」→ 加算は基本「◯円なり」(引き算の直後だけ「◯円加えて」)
-  // → 引き算は毎回「◯円引いては」→ 最後「◯円では」→「おいくらでしょう」
+  // → 引き算は毎回「◯円引いては」→ 最後は「◯円では」で締める
   async function speakProblem(terms, rate, pauseMs, isCancelled) {
     window.speechSynthesis && window.speechSynthesis.cancel();
 
@@ -109,10 +109,8 @@ const SpeechEngine = (() => {
 
       await speakOne(text, rate);
       if (isCancelled()) return;
-      await sleep(pauseMs);
+      if (!isLast) await sleep(pauseMs);
     }
-    if (isCancelled()) return;
-    await speakOne('おいくらでしょう', rate);
   }
 
   function cancel() {
