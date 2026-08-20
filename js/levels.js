@@ -7,8 +7,6 @@
 // allowSubtract: ひき算を混ぜるか
 // sessionPlan: 通常の10問固定を上書きし、{count, allowSubtract}のブロックを順に出題する
 const LEVELS = {
-  5: { name: '5級', digits: 1, terms: 5, flashInterval: 1300, speechRate: 0.8, speechPause: 600, allowSubtract: false },
-  4: { name: '4級', digits: 1, terms: 6, flashInterval: 1100, speechRate: 0.9, speechPause: 500, allowSubtract: false },
   3: {
     name: '3級', digits: 2, terms: 7, flashInterval: 950, speechRate: 1.0, speechPause: 450, allowSubtract: true,
     sessionPlan: [
@@ -20,4 +18,4 @@ const LEVELS = {
   1: { name: '1級', digits: 3, terms: 9, flashInterval: 650, speechRate: 1.25, speechPause: 250, allowSubtract: true },
 };
 
-const LEVEL_ORDER = [5, 4, 3, 2, 1];
+const LEVEL_ORDER = [3, 2, 1];

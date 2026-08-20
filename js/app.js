@@ -3,7 +3,7 @@
 const PROBLEM_COUNT = 10;
 
 const state = {
-  level: 5,
+  level: 3,
   mode: 'flash',   // 'flash' | 'yomiage'
   count: PROBLEM_COUNT,
   problems: [],
