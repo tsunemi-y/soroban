@@ -22,6 +22,7 @@
       <p class="subtitle">フラッシュ暗算 &amp; よみあげ暗算</p>
       <button id="btn-start" class="mc-btn mc-btn-lg">▶ はじめる</button>
       <button id="btn-howto" class="mc-btn">? あそびかた</button>
+      <button id="btn-history" class="mc-btn">📜 きろく</button>
     </div>
     <div class="block-ground"></div>
   </section>
@@ -36,6 +37,18 @@
         <li>級(きゅう)を えらぶと、むずかしさが変わるよ。3級がいちばん やさしくて、1級がいちばん むずかしいよ。</li>
       </ul>
       <button class="mc-btn back-btn" data-back="screen-title">もどる</button>
+    </div>
+  </section>
+
+  <!-- きろく画面 -->
+  <section id="screen-history" class="screen mc-bg-stone">
+    <div class="mc-panel history-panel">
+      <h2 class="panel-title">きろく</h2>
+      <div id="history-list" class="history-list"></div>
+      <div class="result-btns">
+        <button id="btn-history-clear" class="mc-btn">きろくをけす</button>
+        <button class="mc-btn back-btn" data-back="screen-title">もどる</button>
+      </div>
     </div>
   </section>
 
@@ -114,12 +127,25 @@
     <div class="mc-panel result-panel">
       <h2 class="panel-title">けっか</h2>
       <p id="result-score" class="result-score"></p>
+      <p id="result-pass" class="result-pass"></p>
       <p id="result-best" class="result-best"></p>
       <div class="result-btns">
         <button id="btn-retry" class="mc-btn">もう一度</button>
         <button id="btn-to-mode" class="mc-btn">モードを変える</button>
         <button id="btn-to-title" class="mc-btn">タイトルへ</button>
       </div>
+    </div>
+  </section>
+
+  <!-- 合格ごほうび画面 -->
+  <section id="screen-reward" class="screen mc-bg-night">
+    <div class="reward-stage">
+      <p class="reward-caption">合格おめでとう！ごほうびアイテムをゲット！</p>
+      <div id="reward-pack" class="reward-pack">
+        <span class="reward-pack-label">タップして あける</span>
+      </div>
+      <div id="reward-card" class="reward-card"></div>
+      <button id="btn-reward-next" class="mc-btn">けっかを みる</button>
     </div>
   </section>
 

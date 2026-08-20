@@ -25,6 +25,85 @@ function showScreen(id) {
 
 const MODE_NAMES = { flash: 'フラッシュ暗算', yomiage: 'よみあげ暗算' };
 
+/* ---------- 合格ごほうび(アイテムパック) ---------- */
+const RARITY_META = {
+  common: { label: 'コモン', className: 'rarity-common' },
+  uncommon: { label: 'アンコモン', className: 'rarity-uncommon' },
+  rare: { label: 'レア', className: 'rarity-rare' },
+  epic: { label: 'エピック', className: 'rarity-epic' },
+  legendary: { label: 'レジェンド', className: 'rarity-legendary' },
+};
+
+const REWARD_ITEMS = [
+  { name: '小麦', icon: '🌾', rarity: 'common', weight: 40 },
+  { name: 'まるた', icon: '🪵', rarity: 'common', weight: 40 },
+  { name: '石のつるはし', icon: '⛏️', rarity: 'uncommon', weight: 25 },
+  { name: 'パン', icon: '🍞', rarity: 'uncommon', weight: 25 },
+  { name: '鉄インゴット', icon: '🔩', rarity: 'rare', weight: 12 },
+  { name: '弓', icon: '🏹', rarity: 'rare', weight: 12 },
+  { name: '金インゴット', icon: '🟨', rarity: 'epic', weight: 5 },
+  { name: 'エンチャントの本', icon: '📖', rarity: 'epic', weight: 5 },
+  { name: 'ダイヤモンド', icon: '💎', rarity: 'legendary', weight: 2 },
+  { name: 'ネザースター', icon: '🌟', rarity: 'legendary', weight: 1 },
+];
+
+function pickRewardItem() {
+  const totalWeight = REWARD_ITEMS.reduce((sum, item) => sum + item.weight, 0);
+  let r = Math.random() * totalWeight;
+  for (const item of REWARD_ITEMS) {
+    if (r < item.weight) return item;
+    r -= item.weight;
+  }
+  return REWARD_ITEMS[REWARD_ITEMS.length - 1];
+}
+
+/* ---------- きろく(localStorage) ---------- */
+const HISTORY_KEY = 'soroban_history';
+const HISTORY_MAX = 50;
+
+function loadHistory() {
+  try {
+    return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveHistoryEntry(entry) {
+  const history = loadHistory();
+  history.unshift(entry);
+  if (history.length > HISTORY_MAX) history.length = HISTORY_MAX;
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+}
+
+function renderHistory() {
+  const list = $('#history-list');
+  const history = loadHistory();
+  if (history.length === 0) {
+    list.innerHTML = '<p class="history-empty">まだ きろくが ないよ</p>';
+    return;
+  }
+  list.innerHTML = history.map(h => {
+    const level = LEVELS[h.level];
+    const levelName = level ? level.name : `${h.level}級`;
+    const modeName = MODE_NAMES[h.mode] || h.mode;
+    const d = new Date(h.date);
+    const dateStr = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    return `
+      <div class="history-row ${h.passed ? 'pass' : 'fail'}">
+        <div class="history-main">
+          <span class="history-level">${levelName}</span>
+          <span class="history-mode">${modeName}</span>
+          <span class="history-date">${dateStr}</span>
+        </div>
+        <div class="history-sub">
+          <span class="history-score">${h.score}/${h.total}問</span>
+          <span class="history-badge">${h.passed ? '合格' : '不合格'}</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
 /* ---------- 級選択画面の生成 ---------- */
 function buildLevelGrid() {
   const grid = $('#level-grid');
@@ -51,6 +130,12 @@ function buildLevelGrid() {
 function initNav() {
   $('#btn-start').addEventListener('click', () => { SoundFX.click(); showScreen('screen-mode'); });
   $('#btn-howto').addEventListener('click', () => { SoundFX.click(); showScreen('screen-howto'); });
+  $('#btn-history').addEventListener('click', () => { SoundFX.click(); renderHistory(); showScreen('screen-history'); });
+  $('#btn-history-clear').addEventListener('click', () => {
+    SoundFX.click();
+    localStorage.removeItem(HISTORY_KEY);
+    renderHistory();
+  });
 
   $all('[data-back]').forEach(btn => {
     btn.addEventListener('click', () => { SoundFX.click(); showScreen(btn.dataset.back); });
@@ -73,6 +158,9 @@ function initNav() {
     SoundFX.click();
     quitSession();
   });
+
+  $('#reward-pack').addEventListener('click', openRewardPack);
+  $('#btn-reward-next').addEventListener('click', () => { SoundFX.click(); showResultScreen(); });
 }
 
 // 出題の途中でも抜けられるように、進行中の非同期処理を止めて級選択に戻る
@@ -111,16 +199,25 @@ function renderAnswer() {
   $('#answer-display').textContent = state.answerStr === '' ? '0' : state.answerStr;
 }
 
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 function buildSessionProblems(levelKey) {
   const level = LEVELS[levelKey];
-  if (level.sessionPlan) {
-    const problems = [];
-    level.sessionPlan.forEach(block => {
-      for (let i = 0; i < block.count; i++) {
-        problems.push(generateProblem(levelKey, block.allowSubtract));
-      }
+  const plan = level.sessionPlan;
+  if (plan) {
+    let allowSubtractFlags = [];
+    plan.blocks.forEach(block => {
+      for (let i = 0; i < block.count; i++) allowSubtractFlags.push(block.allowSubtract);
     });
-    return problems;
+    if (plan.shuffle) allowSubtractFlags = shuffle(allowSubtractFlags);
+    return allowSubtractFlags.map(allowSubtract => generateProblem(levelKey, allowSubtract));
   }
   return Array.from({ length: PROBLEM_COUNT }, () => generateProblem(levelKey));
 }
@@ -253,6 +350,8 @@ function finishSession() {
   const total = state.problems.length;
   const score = state.score;
   const pct = Math.round((score / total) * 100);
+  const level = LEVELS[state.level];
+  const passed = score >= level.passScore;
 
   const key = `soroban_best_${state.mode}_${state.level}_${total}`;
   const prevBest = parseInt(localStorage.getItem(key) || '0', 10);
@@ -260,10 +359,63 @@ function finishSession() {
   if (isBest) localStorage.setItem(key, String(score));
   const best = isBest ? score : prevBest;
 
-  $('#result-score').textContent = `${score} / ${total} 問 正解 (${pct}%)`;
-  $('#result-best').textContent = `自己ベスト: ${best} / ${total} 問` + (isBest ? ' 🎉 New!' : '');
+  saveHistoryEntry({
+    date: new Date().toISOString(),
+    mode: state.mode,
+    level: state.level,
+    score, total, passed,
+  });
+
+  state.lastResult = { score, total, pct, best, isBest, passed, passScore: level.passScore };
+
+  if (passed) {
+    state.pendingReward = pickRewardItem();
+    showRewardScreen();
+  } else {
+    showResultScreen();
+  }
+}
+
+function showResultScreen() {
+  const r = state.lastResult;
+  $('#result-score').textContent = `${r.score} / ${r.total} 問 正解 (${r.pct}%)`;
+  $('#result-pass').textContent = r.passed
+    ? `🎉 合格！(合格ライン ${r.passScore}問)`
+    : `不合格…(合格ライン ${r.passScore}問)`;
+  $('#result-pass').className = 'result-pass ' + (r.passed ? 'pass' : 'fail');
+  $('#result-best').textContent = `自己ベスト: ${r.best} / ${r.total} 問` + (r.isBest ? ' 🎉 New!' : '');
 
   showScreen('screen-result');
+}
+
+function showRewardScreen() {
+  const packEl = $('#reward-pack');
+  const cardEl = $('#reward-card');
+  packEl.classList.remove('opened');
+  packEl.style.display = '';
+  cardEl.classList.remove('show');
+  cardEl.style.display = 'none';
+  cardEl.innerHTML = '';
+  showScreen('screen-reward');
+}
+
+function openRewardPack() {
+  const item = state.pendingReward;
+  if (!item || $('#reward-pack').classList.contains('opened')) return;
+
+  SoundFX.correct();
+  const packEl = $('#reward-pack');
+  const cardEl = $('#reward-card');
+  const meta = RARITY_META[item.rarity];
+
+  packEl.classList.add('opened');
+  cardEl.className = `reward-card ${meta.className} show`;
+  cardEl.innerHTML = `
+    <div class="reward-icon">${item.icon}</div>
+    <div class="reward-name">${item.name}</div>
+    <div class="reward-rarity">${meta.label}</div>
+  `;
+  cardEl.style.display = 'flex';
 }
 
 /* ---------- 初期化 ---------- */
