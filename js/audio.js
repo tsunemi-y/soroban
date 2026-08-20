@@ -106,8 +106,8 @@ const SpeechEngine = (() => {
       const opChanged = i > 0 && terms[i - 1].op !== t.op;
 
       if (!isLast && opChanged) {
-        // 演算が切り替わる時は、数字と「引いては/加えて」の間に少し間を空ける
-        await speakOne(`${t.value}円`, rate);
+        // 演算が切り替わる時は、「◯円なり」で数字を確定してから、少し間を空けて「引いては/加えて」
+        await speakOne(`${t.value}円なり`, rate);
         if (isCancelled()) return;
         await sleep(opGapMs);
         if (isCancelled()) return;
