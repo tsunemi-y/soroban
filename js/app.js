@@ -21,6 +21,8 @@ function showScreen(id) {
   if (target) target.classList.add('active');
 }
 
+const MODE_NAMES = { flash: 'フラッシュ暗算', yomiage: 'よみあげ暗算' };
+
 /* ---------- 級選択画面の生成 ---------- */
 function buildLevelGrid() {
   const grid = $('#level-grid');
@@ -36,8 +38,7 @@ function buildLevelGrid() {
     card.addEventListener('click', () => {
       SoundFX.click();
       state.level = key;
-      $('#mode-level-badge').textContent = lv.name;
-      showScreen('screen-mode');
+      showScreen('screen-count');
     });
     grid.appendChild(card);
   });
@@ -45,7 +46,7 @@ function buildLevelGrid() {
 
 /* ---------- 画面遷移イベント ---------- */
 function initNav() {
-  $('#btn-start').addEventListener('click', () => { SoundFX.click(); showScreen('screen-level'); });
+  $('#btn-start').addEventListener('click', () => { SoundFX.click(); showScreen('screen-mode'); });
   $('#btn-howto').addEventListener('click', () => { SoundFX.click(); showScreen('screen-howto'); });
 
   $all('[data-back]').forEach(btn => {
@@ -56,7 +57,8 @@ function initNav() {
     btn.addEventListener('click', () => {
       SoundFX.click();
       state.mode = btn.dataset.mode;
-      showScreen('screen-count');
+      $('#level-mode-badge').textContent = MODE_NAMES[state.mode];
+      showScreen('screen-level');
     });
   });
 

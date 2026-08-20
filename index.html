@@ -39,16 +39,9 @@
     </div>
   </section>
 
-  <!-- 級選択画面 -->
-  <section id="screen-level" class="screen mc-bg-stone">
-    <h2 class="panel-title">きゅうを えらぼう</h2>
-    <div id="level-grid" class="level-grid"></div>
-    <button class="mc-btn back-btn" data-back="screen-title">もどる</button>
-  </section>
-
   <!-- モード選択画面 -->
   <section id="screen-mode" class="screen mc-bg-stone">
-    <h2 class="panel-title">モードを えらぼう <span id="mode-level-badge" class="badge"></span></h2>
+    <h2 class="panel-title">モードを えらぼう</h2>
     <div class="mode-grid">
       <button class="mc-btn mode-btn" data-mode="flash">
         <span class="mode-icon">⚡</span>
@@ -59,7 +52,14 @@
         <span>よみあげ暗算</span>
       </button>
     </div>
-    <button class="mc-btn back-btn" data-back="screen-level">もどる</button>
+    <button class="mc-btn back-btn" data-back="screen-title">もどる</button>
+  </section>
+
+  <!-- 級選択画面 -->
+  <section id="screen-level" class="screen mc-bg-stone">
+    <h2 class="panel-title">きゅうを えらぼう <span id="level-mode-badge" class="badge"></span></h2>
+    <div id="level-grid" class="level-grid"></div>
+    <button class="mc-btn back-btn" data-back="screen-mode">もどる</button>
   </section>
 
   <!-- 問題数選択画面 -->
@@ -70,7 +70,7 @@
       <button class="mc-btn count-btn" data-count="10">10問</button>
       <button class="mc-btn count-btn" data-count="20">20問</button>
     </div>
-    <button class="mc-btn back-btn" data-back="screen-mode">もどる</button>
+    <button class="mc-btn back-btn" data-back="screen-level">もどる</button>
   </section>
 
   <!-- プレイ画面 -->
