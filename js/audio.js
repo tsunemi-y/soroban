@@ -97,17 +97,25 @@ const SpeechEngine = (() => {
     if (isCancelled()) return;
     await sleep(pauseMs);
 
+    const opGapMs = Math.min(250, pauseMs);
+
     for (let i = 0; i < terms.length; i++) {
       if (isCancelled()) return;
       const t = terms[i];
       const isLast = i === terms.length - 1;
       const opChanged = i > 0 && terms[i - 1].op !== t.op;
-      let text;
-      if (isLast) text = `${t.value}円では`;
-      else if (opChanged) text = t.op === '-' ? `${t.value}円引いては` : `${t.value}円加えて`;
-      else text = `${t.value}円なり`;
 
-      await speakOne(text, rate);
+      if (!isLast && opChanged) {
+        // 演算が切り替わる時は、数字と「引いては/加えて」の間に少し間を空ける
+        await speakOne(`${t.value}円`, rate);
+        if (isCancelled()) return;
+        await sleep(opGapMs);
+        if (isCancelled()) return;
+        await speakOne(t.op === '-' ? '引いては' : '加えて', rate);
+      } else {
+        const text = isLast ? `${t.value}円では` : `${t.value}円なり`;
+        await speakOne(text, rate);
+      }
       if (isCancelled()) return;
       if (!isLast) await sleep(pauseMs);
     }
