@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>そろばんクラフト - フラッシュ&よみあげ暗算</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><rect width=%228%22 height=%228%22 fill=%22%235d9c3f%22/><rect x=%228%22 width=%228%22 height=%228%22 fill=%22%233f7d20%22/><rect y=%228%22 width=%228%22 height=%228%22 fill=%228b5a2b%22/><rect x=%228%22 y=%228%22 width=%228%22 height=%228%22 fill=%22%236b4423%22/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- タイトル画面 -->
+  <section id="screen-title" class="screen active mc-sky">
+    <div class="clouds"></div>
+    <div class="title-wrap">
+      <h1 class="game-title"><span>そろばん</span><span class="accent">クラフト</span></h1>
+      <p class="subtitle">フラッシュ暗算 &amp; よみあげ暗算</p>
+      <button id="btn-start" class="mc-btn mc-btn-lg">▶ はじめる</button>
+      <button id="btn-howto" class="mc-btn">? あそびかた</button>
+    </div>
+    <div class="block-ground"></div>
+  </section>
+
+  <!-- あそびかた画面 -->
+  <section id="screen-howto" class="screen mc-bg-stone">
+    <div class="mc-panel howto-panel">
+      <h2 class="panel-title">あそびかた</h2>
+      <ul class="howto-list">
+        <li><b>フラッシュ暗算</b>：数字が つぎつぎ 画面に出るよ。ぜんぶ たし算・ひき算して、こたえを入力しよう。</li>
+        <li><b>よみあげ暗算</b>：数字を 声で 読み上げるよ。画面には数字が出ないから、耳で聞いてこたえよう。</li>
+        <li>級(きゅう)を えらぶと、むずかしさが変わるよ。5級がいちばん やさしくて、1級がいちばん むずかしいよ。</li>
+      </ul>
+      <button class="mc-btn back-btn" data-back="screen-title">もどる</button>
+    </div>
+  </section>
+
+  <!-- 級選択画面 -->
+  <section id="screen-level" class="screen mc-bg-stone">
+    <h2 class="panel-title">きゅうを えらぼう</h2>
+    <div id="level-grid" class="level-grid"></div>
+    <button class="mc-btn back-btn" data-back="screen-title">もどる</button>
+  </section>
+
+  <!-- モード選択画面 -->
+  <section id="screen-mode" class="screen mc-bg-stone">
+    <h2 class="panel-title">モードを えらぼう <span id="mode-level-badge" class="badge"></span></h2>
+    <div class="mode-grid">
+      <button class="mc-btn mode-btn" data-mode="flash">
+        <span class="mode-icon">⚡</span>
+        <span>フラッシュ暗算</span>
+      </button>
+      <button class="mc-btn mode-btn" data-mode="yomiage">
+        <span class="mode-icon">🔊</span>
+        <span>よみあげ暗算</span>
+      </button>
+    </div>
+    <button class="mc-btn back-btn" data-back="screen-level">もどる</button>
+  </section>
+
+  <!-- 問題数選択画面 -->
+  <section id="screen-count" class="screen mc-bg-stone">
+    <h2 class="panel-title">もんだいすう を えらぼう</h2>
+    <div class="mode-grid">
+      <button class="mc-btn count-btn" data-count="5">5問</button>
+      <button class="mc-btn count-btn" data-count="10">10問</button>
+      <button class="mc-btn count-btn" data-count="20">20問</button>
+    </div>
+    <button class="mc-btn back-btn" data-back="screen-mode">もどる</button>
+  </section>
+
+  <!-- プレイ画面 -->
+  <section id="screen-play" class="screen mc-bg-night">
+    <div class="hud">
+      <span id="hud-progress" class="hud-item">1 / 10</span>
+      <span id="hud-score" class="hud-item">⭐ 0</span>
+      <span id="hud-level" class="hud-item"></span>
+    </div>
+
+    <div class="play-stage">
+      <!-- フラッシュ表示 -->
+      <div id="flash-display" class="flash-display"></div>
+
+      <!-- よみあげ表示 -->
+      <div id="yomiage-display" class="yomiage-display">
+        <div class="speaker-icon">🔊</div>
+        <p id="yomiage-status">よみあげちゅう…</p>
+      </div>
+
+      <!-- カウントダウン -->
+      <div id="countdown" class="countdown"></div>
+
+      <!-- 解答パネル -->
+      <div id="answer-panel" class="mc-panel answer-panel">
+        <p class="answer-label">こたえは？</p>
+        <div id="answer-display" class="answer-display">0</div>
+        <div class="keypad">
+          <button class="mc-btn key" data-key="7">7</button>
+          <button class="mc-btn key" data-key="8">8</button>
+          <button class="mc-btn key" data-key="9">9</button>
+          <button class="mc-btn key" data-key="4">4</button>
+          <button class="mc-btn key" data-key="5">5</button>
+          <button class="mc-btn key" data-key="6">6</button>
+          <button class="mc-btn key" data-key="1">1</button>
+          <button class="mc-btn key" data-key="2">2</button>
+          <button class="mc-btn key" data-key="3">3</button>
+          <button id="key-clear" class="mc-btn key key-func">C</button>
+          <button class="mc-btn key" data-key="0">0</button>
+          <button id="key-enter" class="mc-btn key key-func key-enter">決定</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 正誤フィードバック -->
+    <div id="feedback" class="feedback"></div>
+  </section>
+
+  <!-- 結果画面 -->
+  <section id="screen-result" class="screen mc-bg-night">
+    <div class="mc-panel result-panel">
+      <h2 class="panel-title">けっか</h2>
+      <p id="result-score" class="result-score"></p>
+      <p id="result-best" class="result-best"></p>
+      <div class="result-btns">
+        <button id="btn-retry" class="mc-btn">もう一度</button>
+        <button id="btn-to-mode" class="mc-btn">モードを変える</button>
+        <button id="btn-to-title" class="mc-btn">タイトルへ</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script src="js/levels.js"></script>
+<script src="js/problem.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

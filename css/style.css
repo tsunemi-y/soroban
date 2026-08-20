@@ -1,0 +1,343 @@
+/* ===== マインクラフト風 そろばん暗算アプリ ===== */
+
+:root {
+  --mc-panel: #c6c6c6;
+  --mc-panel-dark: #373737;
+  --mc-panel-light: #ffffff;
+  --mc-btn: #8b8b8b;
+  --mc-btn-hover: #a3a3a3;
+  --mc-btn-dark: #373737;
+  --mc-btn-light: #e2e2e2;
+  --mc-btn-active-dark: #202020;
+  --sky-top: #6fb1e0;
+  --sky-bottom: #bfe4f5;
+  --grass: #5d9c3f;
+  --grass-dark: #3f7d20;
+  --dirt: #8b5a2b;
+  --dirt-dark: #6b4423;
+  --stone: #8a8a8a;
+  --stone-dark: #6e6e6e;
+  --gold: #ffd23f;
+  --danger: #e74c3c;
+  --success: #58c447;
+  --night-top: #1a1f3a;
+  --night-bottom: #2d3561;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'DotGothic16', 'MS Gothic', monospace;
+  color: #2b2b2b;
+  image-rendering: pixelated;
+  overflow: hidden;
+}
+
+#app {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  overflow-y: auto;
+}
+.screen.active { display: flex; }
+
+/* ----- 背景 ----- */
+.mc-sky { background: linear-gradient(var(--sky-top), var(--sky-bottom)); }
+.mc-bg-stone {
+  background:
+    repeating-linear-gradient(0deg, rgba(0,0,0,0.06) 0 4px, transparent 4px 32px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,0.06) 0 4px, transparent 4px 32px),
+    var(--stone);
+}
+.mc-bg-night { background: linear-gradient(var(--night-top), var(--night-bottom)); }
+
+.clouds {
+  position: absolute;
+  top: 8%;
+  left: 0;
+  width: 200%;
+  height: 40px;
+  background-image:
+    radial-gradient(ellipse 40px 16px at 60px 20px, #fff 90%, transparent 100%),
+    radial-gradient(ellipse 40px 16px at 260px 12px, #fff 90%, transparent 100%),
+    radial-gradient(ellipse 40px 16px at 460px 24px, #fff 90%, transparent 100%),
+    radial-gradient(ellipse 40px 16px at 660px 16px, #fff 90%, transparent 100%);
+  opacity: 0.85;
+  animation: driftClouds 60s linear infinite;
+}
+@keyframes driftClouds { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+.block-ground {
+  position: absolute;
+  bottom: 0; left: 0; width: 100%;
+  height: 64px;
+  background:
+    linear-gradient(var(--grass), var(--grass) 45%, var(--dirt) 45%, var(--dirt)),
+    repeating-linear-gradient(90deg, rgba(0,0,0,0.12) 0 2px, transparent 2px 32px);
+  box-shadow: inset 0 -32px 0 0 var(--dirt-dark);
+  border-top: 3px solid var(--grass-dark);
+}
+
+/* ----- タイトル ----- */
+.title-wrap { text-align: center; z-index: 2; }
+.game-title {
+  font-size: clamp(2rem, 8vw, 3.4rem);
+  margin: 0 0 4px;
+  letter-spacing: 2px;
+  color: #fff;
+  text-shadow:
+    3px 3px 0 var(--dirt-dark),
+    -2px -2px 0 var(--dirt-dark),
+    2px -2px 0 var(--dirt-dark),
+    -2px 2px 0 var(--dirt-dark),
+    6px 6px 0 rgba(0,0,0,0.25);
+}
+.game-title .accent { color: var(--gold); }
+.subtitle {
+  color: #fff;
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.35);
+  margin: 0 0 28px;
+  font-size: 1.1rem;
+}
+
+/* ----- マインクラフト風パネル/ボタン ----- */
+.mc-panel {
+  background: var(--mc-panel);
+  box-shadow:
+    inset -4px -4px 0 0 var(--mc-panel-dark),
+    inset 4px 4px 0 0 var(--mc-panel-light);
+  padding: 20px;
+  max-width: 640px;
+  width: 100%;
+}
+
+.mc-btn {
+  font-family: inherit;
+  background: var(--mc-btn);
+  color: #fff;
+  border: none;
+  padding: 14px 20px;
+  font-size: 1.05rem;
+  cursor: pointer;
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+  box-shadow:
+    inset -3px -3px 0 0 var(--mc-btn-dark),
+    inset 3px 3px 0 0 var(--mc-btn-light);
+  transition: transform 0.03s linear;
+  touch-action: manipulation;
+  user-select: none;
+}
+.mc-btn:hover { background: var(--mc-btn-hover); }
+.mc-btn:active {
+  box-shadow:
+    inset 3px 3px 0 0 var(--mc-btn-active-dark),
+    inset -3px -3px 0 0 var(--mc-btn-light);
+  transform: translateY(1px);
+}
+.mc-btn:disabled { opacity: 0.5; cursor: default; }
+
+.mc-btn-lg {
+  display: block;
+  margin: 0 auto 14px;
+  font-size: 1.4rem;
+  padding: 18px 36px;
+  background: var(--grass);
+  box-shadow:
+    inset -4px -4px 0 0 var(--grass-dark),
+    inset 4px 4px 0 0 #86d15f;
+}
+.mc-btn-lg:hover { background: #6bb548; }
+
+.panel-title {
+  color: #fff;
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.45);
+  margin: 0 0 20px;
+  font-size: 1.5rem;
+  text-align: center;
+}
+.badge {
+  display: inline-block;
+  background: var(--gold);
+  color: #4a3800;
+  font-size: 0.9rem;
+  padding: 2px 10px;
+  margin-left: 8px;
+  box-shadow: inset -2px -2px 0 0 #b58900, inset 2px 2px 0 0 #fff4c2;
+}
+
+.back-btn { margin-top: 24px; }
+
+/* ----- あそびかた ----- */
+.howto-panel { max-width: 560px; }
+.howto-list { line-height: 1.9; padding-left: 20px; color: #1c1c1c; }
+.howto-list li { margin-bottom: 12px; }
+
+/* ----- 級選択 ----- */
+.level-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 14px;
+  max-width: 720px;
+  width: 100%;
+  margin-bottom: 12px;
+}
+.level-card {
+  background: var(--mc-btn);
+  color: #fff;
+  padding: 18px 10px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow:
+    inset -3px -3px 0 0 var(--mc-btn-dark),
+    inset 3px 3px 0 0 var(--mc-btn-light);
+}
+.level-card:active { transform: translateY(1px); }
+.level-card .lv-name { font-size: 1.4rem; text-shadow: 2px 2px 0 rgba(0,0,0,0.5); display:block; margin-bottom:6px;}
+.level-card .lv-desc { font-size: 0.75rem; opacity: 0.9; display:block; }
+.level-card.lv-5 { background: #5d9c3f; box-shadow: inset -3px -3px 0 0 #3f7d20, inset 3px 3px 0 0 #86d15f; }
+.level-card.lv-4 { background: #4a90c4; box-shadow: inset -3px -3px 0 0 #2f6693, inset 3px 3px 0 0 #7dbcec; }
+.level-card.lv-3 { background: #c4a24a; box-shadow: inset -3px -3px 0 0 #93762f, inset 3px 3px 0 0 #ecd47d; }
+.level-card.lv-2 { background: #c4703a; box-shadow: inset -3px -3px 0 0 #934f27, inset 3px 3px 0 0 #eca57d; }
+.level-card.lv-1 { background: #b23838; box-shadow: inset -3px -3px 0 0 #7d2323, inset 3px 3px 0 0 #e07d7d; }
+
+/* ----- モード/問題数選択 ----- */
+.mode-grid { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; margin-bottom: 8px; }
+.mode-btn { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 180px; padding: 24px 20px; }
+.mode-icon { font-size: 2.2rem; }
+.count-btn { min-width: 100px; }
+
+/* ----- プレイ画面 ----- */
+.hud {
+  position: absolute;
+  top: 12px; left: 0; right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  z-index: 5;
+}
+.hud-item {
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  padding: 6px 14px;
+  font-size: 0.95rem;
+  box-shadow: inset -2px -2px 0 0 rgba(0,0,0,0.4), inset 2px 2px 0 0 rgba(255,255,255,0.15);
+}
+
+.play-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+  max-width: 520px;
+}
+
+.flash-display {
+  display: none;
+  width: 100%;
+  height: 160px;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.35);
+  box-shadow: inset -4px -4px 0 0 rgba(0,0,0,0.5), inset 4px 4px 0 0 rgba(255,255,255,0.1);
+}
+.flash-number {
+  font-size: 4.2rem;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 3px 3px 0 rgba(0,0,0,0.6);
+  font-family: 'Consolas', 'DotGothic16', monospace;
+}
+.flash-number.op-minus { color: #ff6b6b; }
+
+.yomiage-display {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 160px;
+  justify-content: center;
+  background: rgba(0,0,0,0.35);
+  box-shadow: inset -4px -4px 0 0 rgba(0,0,0,0.5), inset 4px 4px 0 0 rgba(255,255,255,0.1);
+}
+.speaker-icon { font-size: 3.4rem; animation: pulse 0.9s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { transform: scale(1); opacity: 1;} 50% { transform: scale(1.15); opacity: 0.75; } }
+#yomiage-status { color: #fff; margin: 0; text-shadow: 2px 2px 0 rgba(0,0,0,0.5); }
+
+.countdown {
+  display: none;
+  font-size: 5rem;
+  color: var(--gold);
+  text-shadow: 4px 4px 0 rgba(0,0,0,0.6);
+}
+
+.answer-panel { display: none; text-align: center; }
+.answer-label { color: #2b2b2b; margin: 0 0 8px; font-size: 1.1rem; }
+.answer-display {
+  background: #1e1e1e;
+  color: #58ff58;
+  font-family: 'Consolas', monospace;
+  font-size: 2rem;
+  padding: 10px;
+  margin-bottom: 14px;
+  box-shadow: inset -3px -3px 0 0 #000, inset 3px 3px 0 0 #444;
+  min-height: 1.4em;
+}
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.key { padding: 16px 0; font-size: 1.3rem; }
+.key-func { background: var(--dirt); box-shadow: inset -3px -3px 0 0 var(--dirt-dark), inset 3px 3px 0 0 #c98a52; }
+.key-enter { grid-column: span 1; background: var(--grass); box-shadow: inset -3px -3px 0 0 var(--grass-dark), inset 3px 3px 0 0 #86d15f; font-size: 1rem; }
+
+/* ----- フィードバック ----- */
+.feedback {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  pointer-events: none;
+}
+.feedback.show { display: flex; }
+.feedback-box {
+  padding: 20px 40px;
+  font-size: 2rem;
+  color: #fff;
+  text-shadow: 3px 3px 0 rgba(0,0,0,0.5);
+  box-shadow: inset -4px -4px 0 0 rgba(0,0,0,0.4), inset 4px 4px 0 0 rgba(255,255,255,0.25);
+  animation: popIn 0.25s ease-out;
+}
+.feedback-box.correct { background: var(--success); }
+.feedback-box.wrong { background: var(--danger); }
+.feedback-answer { display:block; font-size: 1rem; margin-top: 8px; }
+@keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* ----- 結果画面 ----- */
+.result-panel { text-align: center; }
+.result-score { font-size: 1.6rem; color: #1c1c1c; }
+.result-best { color: #555; margin-bottom: 20px; }
+.result-btns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+@media (max-width: 420px) {
+  .flash-number { font-size: 3rem; }
+  .mc-btn-lg { font-size: 1.15rem; padding: 14px 24px; }
+}
