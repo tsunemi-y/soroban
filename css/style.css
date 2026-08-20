@@ -214,11 +214,10 @@ html, body {
 .level-card.lv-2 { background: #c4703a; box-shadow: inset -3px -3px 0 0 #934f27, inset 3px 3px 0 0 #eca57d; }
 .level-card.lv-1 { background: #b23838; box-shadow: inset -3px -3px 0 0 #7d2323, inset 3px 3px 0 0 #e07d7d; }
 
-/* ----- モード/問題数選択 ----- */
+/* ----- モード選択 ----- */
 .mode-grid { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; margin-bottom: 8px; }
 .mode-btn { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 180px; padding: 24px 20px; }
 .mode-icon { font-size: 2.2rem; }
-.count-btn { min-width: 100px; }
 
 /* ----- プレイ画面 ----- */
 .hud {

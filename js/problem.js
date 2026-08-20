@@ -6,6 +6,14 @@ function randDigitsValue(digits) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+// level.digitsは固定の桁数、または [2, 3] のような複数桁数からのランダム選択
+function pickDigits(digitsConfig) {
+  if (Array.isArray(digitsConfig)) {
+    return digitsConfig[Math.floor(Math.random() * digitsConfig.length)];
+  }
+  return digitsConfig;
+}
+
 // terms: [{ value:number, op:'+'|'-' }], answer: number
 function generateProblem(levelKey) {
   const level = LEVELS[levelKey];
@@ -13,7 +21,7 @@ function generateProblem(levelKey) {
   let total = 0;
 
   for (let i = 0; i < level.terms; i++) {
-    const value = randDigitsValue(level.digits);
+    const value = randDigitsValue(pickDigits(level.digits));
     let op = '+';
 
     if (i > 0 && level.allowSubtract && Math.random() < 0.4 && value <= total) {

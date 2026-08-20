@@ -1,9 +1,11 @@
 // 画面遷移・ゲーム進行を管理するメインスクリプト
 
+const PROBLEM_COUNT = 10;
+
 const state = {
   level: 5,
   mode: 'flash',   // 'flash' | 'yomiage'
-  count: 10,
+  count: PROBLEM_COUNT,
   problems: [],
   index: 0,
   score: 0,
@@ -31,14 +33,15 @@ function buildLevelGrid() {
     const lv = LEVELS[key];
     const card = document.createElement('div');
     card.className = `level-card lv-${key}`;
+    const digitsLabel = Array.isArray(lv.digits) ? lv.digits.join('-') : lv.digits;
     card.innerHTML = `
       <span class="lv-name">${lv.name}</span>
-      <span class="lv-desc">${lv.digits}桁 × ${lv.terms}口</span>
+      <span class="lv-desc">${digitsLabel}桁 × ${lv.terms}口</span>
     `;
     card.addEventListener('click', () => {
       SoundFX.click();
       state.level = key;
-      showScreen('screen-count');
+      startSession();
     });
     grid.appendChild(card);
   });
@@ -59,14 +62,6 @@ function initNav() {
       state.mode = btn.dataset.mode;
       $('#level-mode-badge').textContent = MODE_NAMES[state.mode];
       showScreen('screen-level');
-    });
-  });
-
-  $all('.count-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      SoundFX.click();
-      state.count = parseInt(btn.dataset.count, 10);
-      startSession();
     });
   });
 
