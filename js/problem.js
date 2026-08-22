@@ -26,8 +26,11 @@ function generateProblem(levelKey, allowSubtractOverride) {
   for (let i = 0; i < level.terms; i++) {
     const value = randDigitsValue(pickDigits(level.digits));
     let op = '+';
+    const isLast = i === level.terms - 1;
 
-    if (i > 0 && allowSubtract && Math.random() < 0.4 && value <= total) {
+    // よみあげの最後の項は「◯円では」とだけ言い、演算を読み上げないため、
+    // 最後の項は必ず足し算にする(そうしないと読み上げた数字と答えが合わなくなる)
+    if (i > 0 && !isLast && allowSubtract && Math.random() < 0.4 && value <= total) {
       op = '-';
     }
 

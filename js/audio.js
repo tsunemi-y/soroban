@@ -86,38 +86,57 @@ const SpeechEngine = (() => {
     });
   }
 
+  // Chrome系ブラウザは音声合成が続くとおよそ15秒で自動的に無音停止してしまう
+  // 既知のバグがあるため、しゃべっている間は定期的にpause/resumeして止まらないようにする
+  function startKeepAlive() {
+    if (!window.speechSynthesis) return null;
+    return setInterval(() => {
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.pause();
+        window.speechSynthesis.resume();
+      }
+    }, 5000);
+  }
+
   // 読み上げ算の伝統的な言い回しで読み上げる
   // 「ねがいましては」→ 1口目「◯円なり」→ 直前と同じ演算が続く間は「◯円なり」
   // → 足し算から引き算に変わった瞬間だけ「◯円引いては」、引き算から足し算に戻った瞬間だけ「◯円加えて」
   // → 最後は「◯円では」で締める
   async function speakProblem(terms, rate, pauseMs, isCancelled) {
     window.speechSynthesis && window.speechSynthesis.cancel();
+    const keepAliveId = startKeepAlive();
 
-    await speakOne('ねがいましては', rate);
-    if (isCancelled()) return;
-    await sleep(pauseMs);
-
-    const opGapMs = Math.min(250, pauseMs);
-
-    for (let i = 0; i < terms.length; i++) {
+    try {
+      await speakOne('ねがいましては', rate);
       if (isCancelled()) return;
-      const t = terms[i];
-      const isLast = i === terms.length - 1;
-      const opChanged = i > 0 && terms[i - 1].op !== t.op;
+      await sleep(pauseMs);
 
-      if (!isLast && opChanged) {
-        // 演算が切り替わる時は、「◯円なり」で数字を確定してから、少し間を空けて「引いては/加えて」
-        await speakOne(`${t.value}円なり`, rate);
+      const opGapMs = Math.min(250, pauseMs);
+
+      for (let i = 0; i < terms.length; i++) {
         if (isCancelled()) return;
-        await sleep(opGapMs);
+        const t = terms[i];
+        const isLast = i === terms.length - 1;
+        const opChanged = i > 0 && terms[i - 1].op !== t.op;
+
+        if (opChanged) {
+          // 演算が切り替わる時は、「◯円なり」で数字を確定してから、少し間を空けて「引いては/加えて」
+          // (最後の項でも、切り替わったことは必ずアナウンスする。そうしないと
+          //  聞いた数字と実際の答えが合わなくなってしまう)
+          await speakOne(`${t.value}円なり`, rate);
+          if (isCancelled()) return;
+          await sleep(opGapMs);
+          if (isCancelled()) return;
+          await speakOne(t.op === '-' ? '引いては' : '加えて', rate);
+        } else {
+          const text = isLast ? `${t.value}円では` : `${t.value}円なり`;
+          await speakOne(text, rate);
+        }
         if (isCancelled()) return;
-        await speakOne(t.op === '-' ? '引いては' : '加えて', rate);
-      } else {
-        const text = isLast ? `${t.value}円では` : `${t.value}円なり`;
-        await speakOne(text, rate);
+        if (!isLast) await sleep(pauseMs);
       }
-      if (isCancelled()) return;
-      if (!isLast) await sleep(pauseMs);
+    } finally {
+      if (keepAliveId) clearInterval(keepAliveId);
     }
   }
 
