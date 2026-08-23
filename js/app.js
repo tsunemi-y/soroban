@@ -57,6 +57,47 @@ function pickRewardItem() {
   return REWARD_ITEMS[REWARD_ITEMS.length - 1];
 }
 
+/* ---------- 取得したアイテム(localStorage) ---------- */
+const INVENTORY_KEY = 'soroban_inventory';
+
+function loadInventory() {
+  try {
+    return JSON.parse(localStorage.getItem(INVENTORY_KEY) || '{}');
+  } catch (e) {
+    return {};
+  }
+}
+
+function addToInventory(itemName) {
+  const inventory = loadInventory();
+  inventory[itemName] = (inventory[itemName] || 0) + 1;
+  localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory));
+}
+
+function renderInventory() {
+  const list = $('#inventory-list');
+  const inventory = loadInventory();
+  list.innerHTML = REWARD_ITEMS.map(item => {
+    const count = inventory[item.name] || 0;
+    const meta = RARITY_META[item.rarity];
+    if (count === 0) {
+      return `
+        <div class="inv-card inv-unknown">
+          <div class="inv-icon">？</div>
+          <div class="inv-name">？？？</div>
+          <div class="inv-rarity">未発見</div>
+        </div>`;
+    }
+    return `
+      <div class="inv-card ${meta.className}">
+        <div class="inv-icon">${item.icon}</div>
+        <div class="inv-name">${item.name}</div>
+        <div class="inv-rarity">${meta.label}</div>
+        <div class="inv-count">×${count}</div>
+      </div>`;
+  }).join('');
+}
+
 /* ---------- きろく(localStorage) ---------- */
 const HISTORY_KEY = 'soroban_history';
 const HISTORY_MAX = 50;
@@ -136,6 +177,7 @@ function initNav() {
     localStorage.removeItem(HISTORY_KEY);
     renderHistory();
   });
+  $('#btn-inventory').addEventListener('click', () => { SoundFX.click(); renderInventory(); showScreen('screen-inventory'); });
 
   $all('[data-back]').forEach(btn => {
     btn.addEventListener('click', () => { SoundFX.click(); showScreen(btn.dataset.back); });
@@ -404,6 +446,7 @@ function openRewardPack() {
   if (!item || $('#reward-pack').classList.contains('opened')) return;
 
   SoundFX.correct();
+  addToInventory(item.name);
   const packEl = $('#reward-pack');
   const cardEl = $('#reward-card');
   const meta = RARITY_META[item.rarity];
