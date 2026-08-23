@@ -6,7 +6,7 @@ function randDigitsValue(digits) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-// level.digitsは固定の桁数、または [2, 3] のような複数桁数からのランダム選択
+// digitsConfigは固定の桁数、または [2, 3] のような複数桁数からのランダム選択
 function pickDigits(digitsConfig) {
   if (Array.isArray(digitsConfig)) {
     return digitsConfig[Math.floor(Math.random() * digitsConfig.length)];
@@ -15,18 +15,20 @@ function pickDigits(digitsConfig) {
 }
 
 // terms: [{ value:number, op:'+'|'-' }], answer: number
+// mode('flash'|'yomiage') によって、同じ級でも桁数・口数(LEVELS[levelKey][mode])が異なる
 // allowSubtractOverride を渡すと、その問題だけ level.allowSubtract の設定を上書きできる
 // (例: 3級の「加算のみ3問+加減算3問」のような構成に使う)
-function generateProblem(levelKey, allowSubtractOverride) {
+function generateProblem(levelKey, mode, allowSubtractOverride) {
   const level = LEVELS[levelKey];
+  const shape = level[mode];
   const allowSubtract = allowSubtractOverride !== undefined ? allowSubtractOverride : level.allowSubtract;
   const terms = [];
   let total = 0;
 
-  for (let i = 0; i < level.terms; i++) {
-    const value = randDigitsValue(pickDigits(level.digits));
+  for (let i = 0; i < shape.terms; i++) {
+    const value = randDigitsValue(pickDigits(shape.digits));
     let op = '+';
-    const isLast = i === level.terms - 1;
+    const isLast = i === shape.terms - 1;
 
     // よみあげの最後の項は「◯円では」とだけ言い、演算を読み上げないため、
     // 最後の項は必ず足し算にする(そうしないと読み上げた数字と答えが合わなくなる)

@@ -145,18 +145,19 @@ function renderHistory() {
   }).join('');
 }
 
-/* ---------- 級選択画面の生成 ---------- */
+/* ---------- 級選択画面の生成(選んだモードに応じて桁数・口数の表示が変わる) ---------- */
 function buildLevelGrid() {
   const grid = $('#level-grid');
   grid.innerHTML = '';
   LEVEL_ORDER.forEach(key => {
     const lv = LEVELS[key];
+    const shape = lv[state.mode];
     const card = document.createElement('div');
     card.className = `level-card lv-${key}`;
-    const digitsLabel = Array.isArray(lv.digits) ? lv.digits.join('-') : lv.digits;
+    const digitsLabel = Array.isArray(shape.digits) ? shape.digits.join('-') : shape.digits;
     card.innerHTML = `
       <span class="lv-name">${lv.name}</span>
-      <span class="lv-desc">${digitsLabel}桁 × ${lv.terms}口</span>
+      <span class="lv-desc">${digitsLabel}桁 × ${shape.terms}口</span>
     `;
     card.addEventListener('click', () => {
       SoundFX.click();
@@ -188,6 +189,7 @@ function initNav() {
       SoundFX.click();
       state.mode = btn.dataset.mode;
       $('#level-mode-badge').textContent = MODE_NAMES[state.mode];
+      buildLevelGrid();
       showScreen('screen-level');
     });
   });
@@ -250,7 +252,7 @@ function shuffle(arr) {
   return a;
 }
 
-function buildSessionProblems(levelKey) {
+function buildSessionProblems(levelKey, mode) {
   const level = LEVELS[levelKey];
   const plan = level.sessionPlan;
   if (plan) {
@@ -259,15 +261,15 @@ function buildSessionProblems(levelKey) {
       for (let i = 0; i < block.count; i++) allowSubtractFlags.push(block.allowSubtract);
     });
     if (plan.shuffle) allowSubtractFlags = shuffle(allowSubtractFlags);
-    return allowSubtractFlags.map(allowSubtract => generateProblem(levelKey, allowSubtract));
+    return allowSubtractFlags.map(allowSubtract => generateProblem(levelKey, mode, allowSubtract));
   }
-  return Array.from({ length: PROBLEM_COUNT }, () => generateProblem(levelKey));
+  return Array.from({ length: PROBLEM_COUNT }, () => generateProblem(levelKey, mode));
 }
 
 /* ---------- セッション進行 ---------- */
 function startSession() {
   state.sessionToken++;
-  state.problems = buildSessionProblems(state.level);
+  state.problems = buildSessionProblems(state.level, state.mode);
   state.count = state.problems.length;
   state.index = 0;
   state.score = 0;
@@ -315,12 +317,12 @@ async function runProblem(token) {
 
   if (state.mode === 'flash') {
     flashDisplay.style.display = 'flex';
-    await playFlashSequence(problem.terms, level.flashInterval, token);
+    await playFlashSequence(problem.terms, level.flash.flashInterval, token);
     flashDisplay.style.display = 'none';
   } else {
     yomiageDisplay.style.display = 'flex';
     $('#yomiage-status').textContent = 'よみあげちゅう…';
-    await SpeechEngine.speakProblem(problem.terms, level.speechRate, level.speechPause, () => token !== state.sessionToken);
+    await SpeechEngine.speakProblem(problem.terms, level.yomiage.speechRate, level.yomiage.speechPause, () => token !== state.sessionToken);
     yomiageDisplay.style.display = 'none';
   }
 
