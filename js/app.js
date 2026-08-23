@@ -149,7 +149,7 @@ function renderHistory() {
 function buildLevelGrid() {
   const grid = $('#level-grid');
   grid.innerHTML = '';
-  LEVEL_ORDER.forEach(key => {
+  LEVEL_ORDER_BY_MODE[state.mode].forEach(key => {
     const lv = LEVELS[key];
     const shape = lv[state.mode];
     const card = document.createElement('div');

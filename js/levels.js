@@ -9,6 +9,11 @@
 // passScore: この問題数以上正解で合格
 // sessionPlan: 通常の10問固定を上書きし、{blocks, shuffle}で出題構成をカスタムする
 const LEVELS = {
+  6: {
+    name: '6級', allowSubtract: true, passScore: 7,
+    flash: { digits: 2, terms: 3, flashInterval: 2000 },      // 2ケタ/3口/6秒
+    // よみあげ暗算では6級は用意していない(フラッシュ暗算のみ)
+  },
   5: {
     name: '5級', allowSubtract: true, passScore: 7,
     flash: { digits: 2, terms: 4, flashInterval: 1750 },     // 2ケタ/4口/7秒
@@ -43,4 +48,8 @@ const LEVELS = {
   },
 };
 
-const LEVEL_ORDER = [5, 4, 3, 2, 1];
+// モードによって選べる級が異なる(6級はフラッシュ暗算のみ)
+const LEVEL_ORDER_BY_MODE = {
+  flash: [6, 5, 4, 3, 2, 1],
+  yomiage: [5, 4, 3, 2, 1],
+};
