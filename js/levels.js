@@ -8,6 +8,7 @@
 // passScore: この問題数以上正解で合格
 // sessionPlan: 通常の10問固定を上書きし、{blocks, shuffle}で出題構成をカスタムする
 const LEVELS = {
+  5: { name: '5級', digits: [1, 2], terms: 7, flashInterval: 1200, speechRate: 0.8, speechPause: 600, allowSubtract: true, passScore: 7 },
   4: { name: '4級', digits: 2, terms: 7, flashInterval: 1050, speechRate: 0.9, speechPause: 500, allowSubtract: true, passScore: 7 },
   3: {
     name: '3級', digits: 2, terms: 10, flashInterval: 950, speechRate: 1.0, speechPause: 450, allowSubtract: true,
@@ -24,4 +25,4 @@ const LEVELS = {
   1: { name: '1級', digits: [3, 4], terms: 10, flashInterval: 650, speechRate: 1.25, speechPause: 250, allowSubtract: true, passScore: 8 },
 };
 
-const LEVEL_ORDER = [4, 3, 2, 1];
+const LEVEL_ORDER = [5, 4, 3, 2, 1];
