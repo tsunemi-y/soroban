@@ -74,6 +74,13 @@ function addToInventory(itemName) {
   localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory));
 }
 
+function renderRarityLegend() {
+  const legend = $('#rarity-legend');
+  legend.innerHTML = Object.values(RARITY_META).map(meta => `
+    <span class="rarity-chip ${meta.className}">${meta.label}</span>
+  `).join('');
+}
+
 function renderInventory() {
   const list = $('#inventory-list');
   const inventory = loadInventory();
@@ -178,7 +185,12 @@ function initNav() {
     localStorage.removeItem(HISTORY_KEY);
     renderHistory();
   });
-  $('#btn-inventory').addEventListener('click', () => { SoundFX.click(); renderInventory(); showScreen('screen-inventory'); });
+  $('#btn-inventory').addEventListener('click', () => {
+    SoundFX.click();
+    renderRarityLegend();
+    renderInventory();
+    showScreen('screen-inventory');
+  });
 
   $all('[data-back]').forEach(btn => {
     btn.addEventListener('click', () => { SoundFX.click(); showScreen(btn.dataset.back); });
