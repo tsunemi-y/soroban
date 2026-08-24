@@ -58,6 +58,21 @@ const LEVELS = {
       ],
     },
   },
+  // 準級(準3級・準2級・準1級)はそろばんモード専用の中間級(4級と3級の間、3級と2級の間、
+  // 2級と1級の間に位置する)。フラッシュ暗算・よみあげ暗算では使わない
+  jun3: {
+    name: '準3級',
+    soroban: {
+      timerMode: 'combined',
+      timeLimitSec: 1800,
+      passRate: 0.8,
+      sections: [
+        { kind: 'mitori', label: '見取り算', digits: 5, terms: 10, count: 10 },
+        { kind: 'kake', label: 'かけ算', totalDigits: 7, decimalEnabled: true, count: 20 },
+        { kind: 'wari', label: 'わり算', totalDigits: 6, decimalEnabled: true, count: 20 },
+      ],
+    },
+  },
   3: {
     name: '3級', allowSubtract: true, passScore: 7,
     flash: { digits: 2, terms: 10, flashInterval: 1500 },    // 2ケタ/10口/15秒
@@ -80,6 +95,19 @@ const LEVELS = {
       shuffle: true, // 加算・加減算をランダムに混ぜて出題する
     },
   },
+  jun2: {
+    name: '準2級',
+    soroban: {
+      timerMode: 'combined',
+      timeLimitSec: 1800,
+      passRate: 0.8,
+      sections: [
+        { kind: 'mitori', label: '見取り算', digits: 7, terms: 10, count: 10 },
+        { kind: 'kake', label: 'かけ算', totalDigits: 8, decimalEnabled: true, count: 20 },
+        { kind: 'wari', label: 'わり算', totalDigits: 7, decimalEnabled: true, count: 20 },
+      ],
+    },
+  },
   2: {
     name: '2級', allowSubtract: true, passScore: 8,
     flash: { digits: 2, terms: 10, flashInterval: 1000 },    // 2ケタ/10口/10秒
@@ -92,6 +120,19 @@ const LEVELS = {
         { kind: 'mitori', label: '見取り算', digits: 8, terms: 10, count: 10 },
         { kind: 'kake', label: 'かけ算', totalDigits: 9, decimalEnabled: true, count: 20 },
         { kind: 'wari', label: 'わり算', totalDigits: 8, decimalEnabled: true, count: 20 },
+      ],
+    },
+  },
+  jun1: {
+    name: '準1級',
+    soroban: {
+      timerMode: 'combined',
+      timeLimitSec: 1800,
+      passRate: 0.8,
+      sections: [
+        { kind: 'mitori', label: '見取り算', digits: 9, terms: 10, count: 10 },
+        { kind: 'kake', label: 'かけ算', totalDigits: 10, decimalEnabled: true, count: 20 },
+        { kind: 'wari', label: 'わり算', totalDigits: 9, decimalEnabled: true, count: 20 },
       ],
     },
   },
@@ -112,9 +153,10 @@ const LEVELS = {
   },
 };
 
-// モードによって選べる級が異なる(6級はフラッシュ暗算のみ、そろばんモードは5級から)
+// モードによって選べる級が異なる(6級はフラッシュ暗算のみ、そろばんモードは5級から。
+// 準級は4級と3級・3級と2級・2級と1級の間にはさまる中間級で、そろばんモードのみに存在する)
 const LEVEL_ORDER_BY_MODE = {
   flash: [6, 5, 4, 3, 2, 1],
   yomiage: [5, 4, 3, 2, 1],
-  soroban: [5, 4, 3, 2, 1],
+  soroban: [5, 4, 'jun3', 3, 'jun2', 2, 'jun1', 1],
 };
