@@ -135,8 +135,13 @@ function renderHistory() {
     const level = LEVELS[h.level];
     const levelName = level ? level.name : `${h.level}級`;
     const modeName = MODE_NAMES[h.mode] || h.mode;
+    const pct = Math.round((h.score / h.total) * 100);
     const d = new Date(h.date);
     const dateStr = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    const breakdownHtml = h.sections ? `
+        <div class="history-breakdown">
+          ${h.sections.map(s => `<span class="history-chip">${s.label} ${s.correct}/${s.total}</span>`).join('')}
+        </div>` : '';
     return `
       <div class="history-row ${h.passed ? 'pass' : 'fail'}">
         <div class="history-main">
@@ -145,11 +150,49 @@ function renderHistory() {
           <span class="history-date">${dateStr}</span>
         </div>
         <div class="history-sub">
-          <span class="history-score">${h.score}/${h.total}問</span>
+          <span class="history-score">${h.score}/${h.total}問 (${pct}%)</span>
           <span class="history-badge">${h.passed ? '合格' : '不合格'}</span>
         </div>
+        ${breakdownHtml}
       </div>`;
   }).join('');
+}
+
+/* ---------- きろくのCSVダウンロード(AIなどでの分析用) ---------- */
+function csvEscape(v) {
+  const s = String(v);
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+function historyToCSV(history) {
+  const header = ['日付', 'モード', '級', '正解数', '問題数', '正答率(%)', '合否', '内訳'];
+  const rows = history.map(h => {
+    const level = LEVELS[h.level];
+    const levelName = level ? level.name : `${h.level}級`;
+    const modeName = MODE_NAMES[h.mode] || h.mode;
+    const pct = Math.round((h.score / h.total) * 100);
+    const breakdown = h.sections ? h.sections.map(s => `${s.label} ${s.correct}/${s.total}`).join(' / ') : '';
+    const d = new Date(h.date);
+    const dateStr = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    return [dateStr, modeName, levelName, h.score, h.total, pct, h.passed ? '合格' : '不合格', breakdown];
+  });
+  return [header, ...rows].map(row => row.map(csvEscape).join(',')).join('\r\n');
+}
+
+function downloadHistoryCSV() {
+  const history = loadHistory();
+  const csv = historyToCSV(history);
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const d = new Date();
+  const fname = `soroban_history_${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}.csv`;
+  a.href = url;
+  a.download = fname;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 function sorobanLevelDesc(lv) {
@@ -203,6 +246,10 @@ function initNav() {
     SoundFX.click();
     localStorage.removeItem(HISTORY_KEY);
     renderHistory();
+  });
+  $('#btn-history-csv').addEventListener('click', () => {
+    SoundFX.click();
+    downloadHistoryCSV();
   });
   $('#btn-inventory').addEventListener('click', () => {
     SoundFX.click();
@@ -272,26 +319,26 @@ function initKeypad() {
   });
 }
 
-function initSorobanKeypad() {
-  $all('.sb-key[data-key]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      SoundFX.click();
-      appendSorobanDigit(btn.dataset.key);
-    });
-  });
-  $('#sb-key-clear').addEventListener('click', () => {
+function initSorobanNav() {
+  $('#sb-btn-back').addEventListener('click', () => {
+    if ($('#sb-btn-back').disabled) return;
     SoundFX.click();
-    state.soroban.answerStr = '';
-    renderSorobanAnswer();
+    backSorobanProblem(state.sbToken);
   });
-  $('#sb-key-enter').addEventListener('click', () => { submitSorobanAnswer(); });
+  $('#sb-btn-next').addEventListener('click', () => {
+    SoundFX.click();
+    nextSorobanProblem(state.sbToken);
+  });
+  $('#sb-btn-grade').addEventListener('click', () => {
+    gradeBulkEntry();
+  });
 
   document.addEventListener('keydown', (e) => {
     if (!$('#screen-soroban-play').classList.contains('active')) return;
-    if ($('#sb-answer-panel').style.display === 'none') return;
-    if (e.key >= '0' && e.key <= '9') appendSorobanDigit(e.key);
-    else if (e.key === 'Backspace') { state.soroban.answerStr = state.soroban.answerStr.slice(0, -1); renderSorobanAnswer(); }
-    else if (e.key === 'Enter') submitSorobanAnswer();
+    const sb = state.soroban;
+    if (!sb || sb.phase !== 'browse') return;
+    if (e.key === 'ArrowRight' || e.key === 'Enter') nextSorobanProblem(state.sbToken);
+    else if (e.key === 'ArrowLeft') backSorobanProblem(state.sbToken);
   });
 }
 
@@ -451,7 +498,12 @@ function showFeedback(correct, answer) {
   setTimeout(() => box.classList.remove('show'), 1100);
 }
 
-/* ---------- そろばんモード(実際にそろばんで計算し、答えだけ入力する) ---------- */
+/* ---------- そろばんモード ----------
+   実際のそろばん・紙で計算しながら、アプリは問題の表示とタイマーだけを受け持つ。
+   「つぎへ／もどる」で問題を見て回り(答え入力なし)、
+   最後の問題まで進むか時間切れになったタイミングで、
+   紙に書いたこたえを まとめて入力→採点する。
+------------------------------------------------------------ */
 function resolveSorobanSections(levelKey) {
   const soroban = LEVELS[levelKey].soroban;
   return soroban.sections.map(section => {
@@ -463,8 +515,21 @@ function resolveSorobanSections(levelKey) {
     } else {
       problems = Array.from({ length: section.count }, () => generateWariProblem(section.divisorDigits, section.quotientDigits));
     }
-    return { label: section.label, kind: section.kind, count: section.count, timeLimitSec: section.timeLimitSec, problems, correct: 0 };
+    return { label: section.label, kind: section.kind, count: section.count, timeLimitSec: section.timeLimitSec, problems };
   });
+}
+
+// 区間の問題たちを {sectionIndex, indexInSection, problem} の一本のリストにする
+function buildFlatList(sections) {
+  const flat = [];
+  sections.forEach((section, sIdx) => {
+    section.problems.forEach((p, pIdx) => flat.push({ sectionIndex: sIdx, indexInSection: pIdx, problem: p }));
+  });
+  return flat;
+}
+
+function buildSectionFlat(sb, sIdx) {
+  return sb.sections[sIdx].problems.map((p, pIdx) => ({ sectionIndex: sIdx, indexInSection: pIdx, problem: p }));
 }
 
 function startSorobanSession() {
@@ -474,23 +539,27 @@ function startSorobanSession() {
     timerMode: soroban.timerMode,
     sections: resolveSorobanSections(state.level),
     sectionIndex: 0,
-    problemIndex: 0,
-    answerStr: '',
+    flat: [],
+    browseIndex: 0,
+    phase: 'browse',
+    entryList: [],
+    entryAnswers: [],
     timerId: null,
     deadline: 0,
     results: [],
-    processing: false,
   };
   showScreen('screen-soroban-play');
 
   if (soroban.timerMode === 'combined') {
-    // combinedモードは全種目を1つの制限時間で通して測る
+    // combinedモードは全種目ぶんの問題を1本のリストにして、通しで1つの制限時間で測る
+    state.soroban.flat = buildFlatList(state.soroban.sections);
     state.soroban.deadline = Date.now() + soroban.timeLimitSec * 1000;
     updateSorobanTimerDisplay(soroban.timeLimitSec);
     state.soroban.timerId = setInterval(() => tickSorobanTimer(state.sbToken), 1000);
+    beginSorobanSection(state.sbToken, true);
+  } else {
+    beginSorobanSection(state.sbToken, true);
   }
-
-  runSorobanSection(state.sbToken);
 }
 
 // 出題の途中でも抜けられるように、タイマーを止めて級選択に戻る
@@ -500,41 +569,67 @@ function quitSorobanSession() {
   showScreen('screen-level');
 }
 
-async function runSorobanSection(token) {
+// 種目の先頭(バナー表示)から閲覧をはじめる。perSectionモードでは種目ごとの新しいタイマーも張る
+async function beginSorobanSection(token, withOwnTimer) {
   if (token !== state.sbToken) return;
   const sb = state.soroban;
   const section = sb.sections[sb.sectionIndex];
-  sb.problemIndex = 0;
+
+  if (sb.timerMode === 'perSection') {
+    sb.flat = buildSectionFlat(sb, sb.sectionIndex);
+  }
+  sb.browseIndex = 0;
+  sb.phase = 'browse';
 
   $('#sb-hud-section').textContent = section.label;
-  updateSorobanHud();
 
   const banner = $('#sb-banner');
   const problemEl = $('#sb-problem');
-  const answerPanel = $('#sb-answer-panel');
+  const navPanel = $('#sb-nav-panel');
+  const entryPanel = $('#sb-entry-panel');
 
   banner.textContent = `${section.label} スタート！`;
   banner.style.display = 'flex';
   problemEl.style.display = 'none';
-  answerPanel.style.display = 'none';
+  navPanel.style.display = 'none';
+  entryPanel.style.display = 'none';
   SoundFX.start();
   await sleep(1200);
   if (token !== state.sbToken) return;
   banner.style.display = 'none';
   problemEl.style.display = 'flex';
-  answerPanel.style.display = 'block';
+  navPanel.style.display = 'flex';
 
-  if (sb.timerMode === 'perSection') {
+  if (sb.timerMode === 'perSection' && withOwnTimer) {
     sb.deadline = Date.now() + section.timeLimitSec * 1000;
     updateSorobanTimerDisplay(section.timeLimitSec);
     if (sb.timerId) clearInterval(sb.timerId);
     sb.timerId = setInterval(() => tickSorobanTimer(token), 1000);
-  } else {
-    // combinedモードはstartSorobanSessionで開始した共通タイマーをそのまま使う
+  } else if (sb.timerMode === 'combined') {
     updateSorobanTimerDisplay(Math.max(0, Math.ceil((sb.deadline - Date.now()) / 1000)));
   }
 
   showSorobanProblem(token);
+}
+
+// combinedモード中、種目の境目をまたぐときだけ短いバナーをはさむ(タイマーは張り直さない)
+async function showSorobanSectionBanner(token, label, afterShown) {
+  if (token !== state.sbToken) return;
+  const banner = $('#sb-banner');
+  const problemEl = $('#sb-problem');
+  const navPanel = $('#sb-nav-panel');
+  $('#sb-hud-section').textContent = label;
+  banner.textContent = `${label} スタート！`;
+  banner.style.display = 'flex';
+  problemEl.style.display = 'none';
+  navPanel.style.display = 'none';
+  SoundFX.start();
+  await sleep(1200);
+  if (token !== state.sbToken) return;
+  banner.style.display = 'none';
+  problemEl.style.display = 'flex';
+  navPanel.style.display = 'flex';
+  afterShown();
 }
 
 function tickSorobanTimer(token) {
@@ -545,11 +640,7 @@ function tickSorobanTimer(token) {
   updateSorobanTimerDisplay(remainingSec);
   if (remainingMs <= 0) {
     clearInterval(sb.timerId);
-    if (sb.timerMode === 'perSection') {
-      finishSorobanSection(token);
-    } else {
-      finishSorobanCombinedTimeout(token);
-    }
+    if (sb.phase === 'browse') enterBulkEntry(token);
   }
 }
 
@@ -561,16 +652,17 @@ function updateSorobanTimerDisplay(sec) {
 
 function updateSorobanHud() {
   const sb = state.soroban;
-  const section = sb.sections[sb.sectionIndex];
-  $('#sb-hud-progress').textContent = `${sb.problemIndex + 1} / ${section.count}`;
+  const cur = sb.flat[sb.browseIndex];
+  const section = sb.sections[cur.sectionIndex];
+  $('#sb-hud-progress').textContent = `${cur.indexInSection + 1} / ${section.count}`;
+  $('#sb-hud-section').textContent = section.label;
 }
 
 function showSorobanProblem(token) {
   if (token !== state.sbToken) return;
   const sb = state.soroban;
-  sb.processing = false;
-  const section = sb.sections[sb.sectionIndex];
-  const problem = section.problems[sb.problemIndex];
+  const cur = sb.flat[sb.browseIndex];
+  const problem = cur.problem;
   updateSorobanHud();
 
   const el = $('#sb-problem');
@@ -587,93 +679,135 @@ function showSorobanProblem(token) {
     el.innerHTML = `<div class="sb-horizontal">${problem.dividend} ÷ ${problem.divisor}</div>`;
   }
 
-  sb.answerStr = '';
-  renderSorobanAnswer();
+  $('#sb-btn-back').disabled = sb.browseIndex === 0;
+  const isLast = sb.browseIndex === sb.flat.length - 1;
+  $('#sb-btn-next').textContent = isLast ? '📝 こたえを入力する' : 'つぎへ ▶';
 }
 
-function renderSorobanAnswer() {
-  $('#sb-answer-display').textContent = state.soroban.answerStr === '' ? '0' : state.soroban.answerStr;
-}
-
-function appendSorobanDigit(d) {
+function backSorobanProblem(token) {
+  if (token !== state.sbToken) return;
   const sb = state.soroban;
-  if (sb.answerStr.length >= 7) return;
-  sb.answerStr = sb.answerStr === '0' ? d : sb.answerStr + d;
-  renderSorobanAnswer();
+  if (sb.phase !== 'browse' || sb.browseIndex === 0) return;
+  sb.browseIndex--;
+  showSorobanProblem(token);
 }
 
-function submitSorobanAnswer() {
+function nextSorobanProblem(token) {
+  if (token !== state.sbToken) return;
+  const sb = state.soroban;
+  if (sb.phase !== 'browse') return;
+  const cur = sb.flat[sb.browseIndex];
+  const isLastOverall = sb.browseIndex === sb.flat.length - 1;
+
+  if (isLastOverall) {
+    enterBulkEntry(token);
+    return;
+  }
+
+  const nextEntry = sb.flat[sb.browseIndex + 1];
+  sb.browseIndex++;
+  if (sb.timerMode === 'combined' && nextEntry.sectionIndex !== cur.sectionIndex) {
+    sb.sectionIndex = nextEntry.sectionIndex;
+    showSorobanSectionBanner(token, sb.sections[sb.sectionIndex].label, () => showSorobanProblem(token));
+  } else {
+    showSorobanProblem(token);
+  }
+}
+
+// 見てきた問題ぶんのこたえを、まとめて入力する画面に切り替える
+function enterBulkEntry(token) {
+  if (token !== state.sbToken) return;
+  const sb = state.soroban;
+  if (sb.phase === 'entry') return;
+  if (sb.timerId) { clearInterval(sb.timerId); sb.timerId = null; }
+  sb.phase = 'entry';
+  sb.entryList = sb.flat.slice(0, sb.browseIndex + 1);
+  sb.entryAnswers = sb.entryList.map(() => '');
+
+  $('#sb-problem').style.display = 'none';
+  $('#sb-nav-panel').style.display = 'none';
+  $('#sb-banner').style.display = 'none';
+  renderBulkEntry();
+  $('#sb-entry-panel').style.display = 'block';
+}
+
+function sorobanProblemText(problem) {
+  if (problem.kind === 'mitori') {
+    return problem.terms.map((t, i) => (i === 0 ? '' : (t.op === '-' ? ' － ' : ' ＋ ')) + t.value).join('');
+  } else if (problem.kind === 'kake') {
+    return `${problem.a} × ${problem.b}`;
+  }
+  return `${problem.dividend} ÷ ${problem.divisor}`;
+}
+
+function renderBulkEntry() {
+  const sb = state.soroban;
+  const listEl = $('#sb-entry-list');
+  let html = '';
+  let lastSection = null;
+  sb.entryList.forEach((e, i) => {
+    if (e.sectionIndex !== lastSection) {
+      lastSection = e.sectionIndex;
+      html += `<div class="sb-entry-section-label">${sb.sections[e.sectionIndex].label}</div>`;
+    }
+    html += `
+      <div class="sb-entry-row">
+        <span class="sb-entry-no">${e.indexInSection + 1}</span>
+        <span class="sb-entry-problem">${sorobanProblemText(e.problem)}</span>
+        <span class="sb-entry-eq">=</span>
+        <input type="number" inputmode="numeric" class="sb-entry-input" data-idx="${i}">
+      </div>`;
+  });
+  listEl.innerHTML = html;
+  $all('.sb-entry-input').forEach(inp => {
+    inp.addEventListener('input', () => {
+      sb.entryAnswers[parseInt(inp.dataset.idx, 10)] = inp.value;
+    });
+  });
+}
+
+function gradeBulkEntry() {
   const token = state.sbToken;
   const sb = state.soroban;
-  if (sb.processing) return; // 連打・多重送信防止
-  sb.processing = true;
-
-  const section = sb.sections[sb.sectionIndex];
-  const problem = section.problems[sb.problemIndex];
-  const userAnswer = parseInt(sb.answerStr || '0', 10);
-  const correct = userAnswer === problem.answer;
-
-  // そろばんモードは1問ごとの正誤を出さず、結果は最後にまとめて出す
-  if (correct) section.correct++;
+  if (sb.phase !== 'entry') return;
   SoundFX.click();
 
-  sb.problemIndex++;
-  setTimeout(() => {
-    if (token !== state.sbToken) return;
-    if (sb.problemIndex >= section.count) {
-      if (sb.timerMode === 'perSection') clearInterval(sb.timerId);
-      finishSorobanSection(token);
-    } else {
-      showSorobanProblem(token);
-    }
-  }, 300);
-}
-
-function sorobanSectionPassed(section, level) {
-  return (section.correct / section.count) >= level.soroban.passRate;
-}
-
-function finishSorobanSection(token) {
-  if (token !== state.sbToken) return;
-  const sb = state.soroban;
-  const section = sb.sections[sb.sectionIndex];
   const level = LEVELS[state.level];
-
-  sb.results.push({
-    label: section.label,
-    correct: section.correct,
-    total: section.count,
-    passed: sorobanSectionPassed(section, level),
+  const sectionCorrect = {};
+  sb.entryList.forEach((e, i) => {
+    const userAnswer = parseInt(sb.entryAnswers[i] || '', 10);
+    const correct = userAnswer === e.problem.answer;
+    if (correct) sectionCorrect[e.sectionIndex] = (sectionCorrect[e.sectionIndex] || 0) + 1;
   });
 
-  sb.sectionIndex++;
-  if (sb.sectionIndex < sb.sections.length) {
-    runSorobanSection(token);
+  if (sb.timerMode === 'perSection') {
+    const section = sb.sections[sb.sectionIndex];
+    const correct = sectionCorrect[sb.sectionIndex] || 0;
+    sb.results.push({
+      label: section.label,
+      correct,
+      total: section.count,
+      passed: (correct / section.count) >= level.soroban.passRate,
+    });
+    sb.sectionIndex++;
+    if (sb.sectionIndex < sb.sections.length) {
+      beginSorobanSection(token, true);
+    } else {
+      finishSorobanOverall(token);
+    }
   } else {
+    // combined: 見なかった種目・問題は0点としてあつかう
+    sb.results = sb.sections.map((section, sIdx) => {
+      const correct = sectionCorrect[sIdx] || 0;
+      return {
+        label: section.label,
+        correct,
+        total: section.count,
+        passed: (correct / section.count) >= level.soroban.passRate,
+      };
+    });
     finishSorobanOverall(token);
   }
-}
-
-// combinedモードで制限時間が来たときの処理:今の種目までの結果を記録し、
-// まだ手をつけていない残りの種目は0点として締め切る
-function finishSorobanCombinedTimeout(token) {
-  if (token !== state.sbToken) return;
-  const sb = state.soroban;
-  const level = LEVELS[state.level];
-
-  const current = sb.sections[sb.sectionIndex];
-  sb.results.push({
-    label: current.label,
-    correct: current.correct,
-    total: current.count,
-    passed: sorobanSectionPassed(current, level),
-  });
-  for (let i = sb.sectionIndex + 1; i < sb.sections.length; i++) {
-    const s = sb.sections[i];
-    sb.results.push({ label: s.label, correct: 0, total: s.count, passed: false });
-  }
-
-  finishSorobanOverall(token);
 }
 
 function finishSorobanOverall(token) {
@@ -700,6 +834,7 @@ function finishSorobanOverall(token) {
     mode: 'soroban',
     level: state.level,
     score, total, passed,
+    sections: sb.results.map(r => ({ label: r.label, correct: r.correct, total: r.total })),
   });
 
   const passScoreLabel = sb.timerMode === 'perSection'
@@ -809,5 +944,5 @@ document.addEventListener('DOMContentLoaded', () => {
   buildLevelGrid();
   initNav();
   initKeypad();
-  initSorobanKeypad();
+  initSorobanNav();
 });

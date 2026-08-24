@@ -222,14 +222,16 @@ html, body {
 
 /* ----- プレイ画面 ----- */
 .hud {
-  position: absolute;
-  top: 12px; left: 0; right: 0;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto 16px;
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 0 12px;
   z-index: 5;
   flex-wrap: wrap;
+  flex: 0 0 auto;
 }
 .hud-info {
   flex: 1 1 auto;
@@ -347,6 +349,63 @@ html, body {
   margin-top: 24px;
 }
 
+.sb-nav-panel {
+  display: none;
+  gap: 14px;
+  width: 100%;
+  justify-content: center;
+}
+.sb-nav-btn { flex: 1 1 0; max-width: 220px; padding: 20px 0; font-size: 1.1rem; }
+.sb-nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.sb-nav-btn-next { background: var(--grass); box-shadow: inset -3px -3px 0 0 var(--grass-dark), inset 3px 3px 0 0 #86d15f; }
+
+.sb-entry-panel { display: none; width: 100%; max-width: 520px; text-align: center; }
+.sb-entry-list {
+  max-height: 48vh;
+  overflow-y: auto;
+  margin-bottom: 14px;
+  text-align: left;
+}
+.sb-entry-section-label {
+  color: #7d5a1f;
+  font-weight: bold;
+  margin: 10px 0 4px;
+  font-size: 0.9rem;
+}
+.sb-entry-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px;
+  border-bottom: 1px solid rgba(0,0,0,0.15);
+}
+.sb-entry-no { width: 1.8em; color: #666; font-size: 0.8rem; flex: 0 0 auto; }
+.sb-entry-problem {
+  flex: 1 1 auto;
+  font-family: 'Consolas', 'DotGothic16', monospace;
+  color: #1c1c1c;
+  font-size: 0.95rem;
+}
+.sb-entry-eq { flex: 0 0 auto; color: #1c1c1c; }
+.sb-entry-input {
+  flex: 0 0 96px;
+  width: 96px;
+  font-family: 'Consolas', monospace;
+  font-size: 1.1rem;
+  padding: 6px;
+  background: #1e1e1e;
+  color: #58ff58;
+  border: none;
+  box-shadow: inset -2px -2px 0 0 #000, inset 2px 2px 0 0 #444;
+}
+.sb-btn-grade {
+  width: 100%;
+  padding: 16px 0;
+  font-size: 1.1rem;
+  background: var(--grass);
+  box-shadow: inset -3px -3px 0 0 var(--grass-dark), inset 3px 3px 0 0 #86d15f;
+}
+
 .answer-panel { display: none; text-align: center; }
 .answer-label { color: #2b2b2b; margin: 0 0 8px; font-size: 1.1rem; }
 .answer-display {
@@ -442,6 +501,8 @@ html, body {
 }
 .history-row.pass .history-badge { background: var(--success); color: #fff; }
 .history-row.fail .history-badge { background: var(--danger); color: #fff; }
+.history-breakdown { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; flex: 1 0 100%; }
+.history-chip { font-size: 0.68rem; background: rgba(0,0,0,0.08); padding: 2px 8px; color: #333; }
 
 /* ----- 合格ごほうび画面 ----- */
 .reward-stage { display: flex; flex-direction: column; align-items: center; gap: 20px; }

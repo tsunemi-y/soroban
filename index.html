@@ -35,7 +35,7 @@
       <ul class="howto-list">
         <li><b>フラッシュ暗算</b>：数字が つぎつぎ 画面に出るよ。ぜんぶ たし算・ひき算して、こたえを入力しよう。</li>
         <li><b>よみあげ暗算</b>：数字を 声で 読み上げるよ。画面には数字が出ないから、耳で聞いてこたえよう。</li>
-        <li><b>そろばん</b>：実さいの そろばんで けいさんして こたえを入力するよ。5級・4級は 見取り算・かけ算・わり算をそれぞれ10分ずつ はかるよ。3級以上は 3しゅもく まとめて30分ではかるよ。</li>
+        <li><b>そろばん</b>：実さいの そろばんで けいさんして、こたえは紙に書いていこう。「つぎへ」で問題をすすめて、さいごまで行くか時間切れになったら、紙に書いたこたえを まとめて入力するよ。5級・4級は 見取り算・かけ算・わり算をそれぞれ10分ずつ はかるよ。3級以上は 3しゅもく まとめて30分ではかるよ。</li>
         <li>級(きゅう)を えらぶと、むずかしさが変わるよ。数字が大きい級ほど やさしくて、1級がいちばん むずかしいよ。6級はフラッシュ暗算だけの、いちばんやさしい級だよ。</li>
       </ul>
       <button class="mc-btn back-btn" data-back="screen-title">もどる</button>
@@ -48,6 +48,7 @@
       <h2 class="panel-title">きろく</h2>
       <div id="history-list" class="history-list"></div>
       <div class="result-btns">
+        <button id="btn-history-csv" class="mc-btn">⬇ CSVでダウンロード</button>
         <button id="btn-history-clear" class="mc-btn">きろくをけす</button>
         <button class="mc-btn back-btn" data-back="screen-title">もどる</button>
       </div>
@@ -158,24 +159,17 @@
       <!-- 問題表示(見取り算/かけ算/わり算) -->
       <div id="sb-problem" class="sb-problem"></div>
 
-      <!-- 解答パネル -->
-      <div id="sb-answer-panel" class="mc-panel answer-panel">
-        <p class="answer-label">こたえは？</p>
-        <div id="sb-answer-display" class="answer-display">0</div>
-        <div class="keypad">
-          <button class="mc-btn sb-key" data-key="7">7</button>
-          <button class="mc-btn sb-key" data-key="8">8</button>
-          <button class="mc-btn sb-key" data-key="9">9</button>
-          <button class="mc-btn sb-key" data-key="4">4</button>
-          <button class="mc-btn sb-key" data-key="5">5</button>
-          <button class="mc-btn sb-key" data-key="6">6</button>
-          <button class="mc-btn sb-key" data-key="1">1</button>
-          <button class="mc-btn sb-key" data-key="2">2</button>
-          <button class="mc-btn sb-key" data-key="3">3</button>
-          <button id="sb-key-clear" class="mc-btn sb-key key-func">C</button>
-          <button class="mc-btn sb-key" data-key="0">0</button>
-          <button id="sb-key-enter" class="mc-btn sb-key key-func key-enter">決定</button>
-        </div>
+      <!-- 閲覧用ナビ(こたえは入力せず、次へ・戻るだけ) -->
+      <div id="sb-nav-panel" class="sb-nav-panel">
+        <button id="sb-btn-back" class="mc-btn sb-nav-btn">◀ もどる</button>
+        <button id="sb-btn-next" class="mc-btn sb-nav-btn sb-nav-btn-next">つぎへ ▶</button>
+      </div>
+
+      <!-- まとめてこたえ入力パネル(最後まで進んだ or 時間切れのときに表示) -->
+      <div id="sb-entry-panel" class="mc-panel sb-entry-panel">
+        <p class="answer-label">紙に書いたこたえを ぜんぶ入力してね</p>
+        <div id="sb-entry-list" class="sb-entry-list"></div>
+        <button id="sb-btn-grade" class="mc-btn sb-btn-grade">✔ さいてんする</button>
       </div>
     </div>
   </section>
