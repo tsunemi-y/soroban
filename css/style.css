@@ -318,11 +318,13 @@ html, body {
   display: none;
   width: 100%;
   min-height: 160px;
-  align-items: center;
+  max-height: 42vh;
+  align-items: flex-start;
   justify-content: center;
   background: rgba(0,0,0,0.35);
   box-shadow: inset -4px -4px 0 0 rgba(0,0,0,0.5), inset 4px 4px 0 0 rgba(255,255,255,0.1);
   padding: 20px 0;
+  overflow-y: auto;
 }
 .sb-mitori {
   display: flex;
@@ -342,6 +344,7 @@ html, body {
   font-weight: bold;
   color: #fff;
   text-shadow: 3px 3px 0 rgba(0,0,0,0.6);
+  margin-top: 24px;
 }
 
 .answer-panel { display: none; text-align: center; }

@@ -613,10 +613,9 @@ function submitSorobanAnswer() {
   const userAnswer = parseInt(sb.answerStr || '0', 10);
   const correct = userAnswer === problem.answer;
 
-  if (correct) { section.correct++; SoundFX.correct(); }
-  else { SoundFX.wrong(); }
-
-  showFeedback(correct, problem.answer);
+  // そろばんモードは1問ごとの正誤を出さず、結果は最後にまとめて出す
+  if (correct) section.correct++;
+  SoundFX.click();
 
   sb.problemIndex++;
   setTimeout(() => {
@@ -627,7 +626,7 @@ function submitSorobanAnswer() {
     } else {
       showSorobanProblem(token);
     }
-  }, 1000);
+  }, 300);
 }
 
 function sorobanSectionPassed(section, level) {
