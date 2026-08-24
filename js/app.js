@@ -47,14 +47,20 @@ const REWARD_ITEMS = [
   { name: 'ネザースター', icon: '🌟', rarity: 'legendary', weight: 1 },
 ];
 
-function pickRewardItem() {
-  const totalWeight = REWARD_ITEMS.reduce((sum, item) => sum + item.weight, 0);
+// pctが高いほど(=高得点なほど)上位レアリティが出やすくなる。省略時は最高評価あつかい
+function pickRewardItem(pct) {
+  const p = typeof pct === 'number' ? pct : 100;
+  const boost = Math.max(0, Math.min(1, (p - 60) / 40)); // 60%以下は補正なし、100%で最大補正
+  const tierBoost = { common: 1 - boost * 0.6, uncommon: 1, rare: 1 + boost * 1.5, epic: 1 + boost * 3, legendary: 1 + boost * 6 };
+
+  const weighted = REWARD_ITEMS.map(item => ({ item, weight: item.weight * tierBoost[item.rarity] }));
+  const totalWeight = weighted.reduce((sum, w) => sum + w.weight, 0);
   let r = Math.random() * totalWeight;
-  for (const item of REWARD_ITEMS) {
-    if (r < item.weight) return item;
-    r -= item.weight;
+  for (const w of weighted) {
+    if (r < w.weight) return w.item;
+    r -= w.weight;
   }
-  return REWARD_ITEMS[REWARD_ITEMS.length - 1];
+  return weighted[weighted.length - 1].item;
 }
 
 /* ---------- 取得したアイテム(localStorage) ---------- */
@@ -135,12 +141,13 @@ function renderHistory() {
     const level = LEVELS[h.level];
     const levelName = level ? level.name : `${h.level}級`;
     const modeName = MODE_NAMES[h.mode] || h.mode;
-    const pct = Math.round((h.score / h.total) * 100);
+    const pct = h.points !== undefined ? Math.round((h.points / h.maxPoints) * 100) : Math.round((h.score / h.total) * 100);
+    const scoreLabel = h.points !== undefined ? `${h.points}/${h.maxPoints}点 (${pct}%)` : `${h.score}/${h.total}問 (${pct}%)`;
     const d = new Date(h.date);
     const dateStr = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
     const breakdownHtml = h.sections ? `
         <div class="history-breakdown">
-          ${h.sections.map(s => `<span class="history-chip">${s.label} ${s.correct}/${s.total}</span>`).join('')}
+          ${h.sections.map(s => `<span class="history-chip">${s.label} ${s.correct}/${s.total}${s.points !== undefined ? ` (${s.points}点)` : ''}</span>`).join('')}
         </div>` : '';
     return `
       <div class="history-row ${h.passed ? 'pass' : 'fail'}">
@@ -150,7 +157,7 @@ function renderHistory() {
           <span class="history-date">${dateStr}</span>
         </div>
         <div class="history-sub">
-          <span class="history-score">${h.score}/${h.total}問 (${pct}%)</span>
+          <span class="history-score">${scoreLabel}</span>
           <span class="history-badge">${h.passed ? '合格' : '不合格'}</span>
         </div>
         ${breakdownHtml}
@@ -164,17 +171,12 @@ function csvEscape(v) {
   return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
 }
 
+// AIでの分析用に、これまで出題した「問題」と「正しい答え」だけを1問1行で書き出す
 function historyToCSV(history) {
-  const header = ['日付', 'モード', '級', '正解数', '問題数', '正答率(%)', '合否', '内訳'];
-  const rows = history.map(h => {
-    const level = LEVELS[h.level];
-    const levelName = level ? level.name : `${h.level}級`;
-    const modeName = MODE_NAMES[h.mode] || h.mode;
-    const pct = Math.round((h.score / h.total) * 100);
-    const breakdown = h.sections ? h.sections.map(s => `${s.label} ${s.correct}/${s.total}`).join(' / ') : '';
-    const d = new Date(h.date);
-    const dateStr = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-    return [dateStr, modeName, levelName, h.score, h.total, pct, h.passed ? '合格' : '不合格', breakdown];
+  const header = ['問題', '答え'];
+  const rows = [];
+  history.forEach(h => {
+    (h.problemList || []).forEach(p => rows.push([p.text, p.answer]));
   });
   return [header, ...rows].map(row => row.map(csvEscape).join(',')).join('\r\n');
 }
@@ -503,7 +505,10 @@ function showFeedback(correct, answer) {
    「つぎへ／もどる」で問題を見て回り(答え入力なし)、
    最後の問題まで進むか時間切れになったタイミングで、
    紙に書いたこたえを まとめて入力→採点する。
+   1秒を争うので、種目の切り替わりでも待ち時間(バナー演出)は入れない。
 ------------------------------------------------------------ */
+const SOROBAN_POINTS_PER_KIND = { mitori: 10, kake: 5, wari: 5 };
+
 function resolveSorobanSections(levelKey) {
   const soroban = LEVELS[levelKey].soroban;
   return soroban.sections.map(section => {
@@ -569,8 +574,9 @@ function quitSorobanSession() {
   showScreen('screen-level');
 }
 
-// 種目の先頭(バナー表示)から閲覧をはじめる。perSectionモードでは種目ごとの新しいタイマーも張る
-async function beginSorobanSection(token, withOwnTimer) {
+// 種目の先頭から閲覧をはじめる。perSectionモードでは種目ごとの新しいタイマーも張る
+// (待ち時間があると1秒を争う本番のロスになるので、演出は入れず即座に問題を出す)
+function beginSorobanSection(token, withOwnTimer) {
   if (token !== state.sbToken) return;
   const sb = state.soroban;
   const section = sb.sections[sb.sectionIndex];
@@ -582,23 +588,10 @@ async function beginSorobanSection(token, withOwnTimer) {
   sb.phase = 'browse';
 
   $('#sb-hud-section').textContent = section.label;
-
-  const banner = $('#sb-banner');
-  const problemEl = $('#sb-problem');
-  const navPanel = $('#sb-nav-panel');
-  const entryPanel = $('#sb-entry-panel');
-
-  banner.textContent = `${section.label} スタート！`;
-  banner.style.display = 'flex';
-  problemEl.style.display = 'none';
-  navPanel.style.display = 'none';
-  entryPanel.style.display = 'none';
+  $('#sb-problem').style.display = 'flex';
+  $('#sb-nav-panel').style.display = 'flex';
+  $('#sb-entry-panel').style.display = 'none';
   SoundFX.start();
-  await sleep(1200);
-  if (token !== state.sbToken) return;
-  banner.style.display = 'none';
-  problemEl.style.display = 'flex';
-  navPanel.style.display = 'flex';
 
   if (sb.timerMode === 'perSection' && withOwnTimer) {
     sb.deadline = Date.now() + section.timeLimitSec * 1000;
@@ -610,26 +603,6 @@ async function beginSorobanSection(token, withOwnTimer) {
   }
 
   showSorobanProblem(token);
-}
-
-// combinedモード中、種目の境目をまたぐときだけ短いバナーをはさむ(タイマーは張り直さない)
-async function showSorobanSectionBanner(token, label, afterShown) {
-  if (token !== state.sbToken) return;
-  const banner = $('#sb-banner');
-  const problemEl = $('#sb-problem');
-  const navPanel = $('#sb-nav-panel');
-  $('#sb-hud-section').textContent = label;
-  banner.textContent = `${label} スタート！`;
-  banner.style.display = 'flex';
-  problemEl.style.display = 'none';
-  navPanel.style.display = 'none';
-  SoundFX.start();
-  await sleep(1200);
-  if (token !== state.sbToken) return;
-  banner.style.display = 'none';
-  problemEl.style.display = 'flex';
-  navPanel.style.display = 'flex';
-  afterShown();
 }
 
 function tickSorobanTimer(token) {
@@ -666,17 +639,18 @@ function showSorobanProblem(token) {
   updateSorobanHud();
 
   const el = $('#sb-problem');
+  const noHtml = `<div class="sb-problem-no">${cur.indexInSection + 1}問目</div>`;
   if (problem.kind === 'mitori') {
-    el.innerHTML = '<div class="sb-mitori">' +
+    el.innerHTML = noHtml + '<div class="sb-mitori">' +
       problem.terms.map((t, i) => {
         const sign = i === 0 ? '' : (t.op === '-' ? '－' : '＋');
         return `<div class="sb-mitori-row"><span class="sb-mitori-sign">${sign}</span><span class="sb-mitori-value">${t.value}</span></div>`;
       }).join('') +
       '<div class="sb-mitori-line"></div></div>';
   } else if (problem.kind === 'kake') {
-    el.innerHTML = `<div class="sb-horizontal">${problem.a} × ${problem.b}</div>`;
+    el.innerHTML = noHtml + `<div class="sb-horizontal">${problem.a} × ${problem.b}</div>`;
   } else {
-    el.innerHTML = `<div class="sb-horizontal">${problem.dividend} ÷ ${problem.divisor}</div>`;
+    el.innerHTML = noHtml + `<div class="sb-horizontal">${problem.dividend} ÷ ${problem.divisor}</div>`;
   }
 
   $('#sb-btn-back').disabled = sb.browseIndex === 0;
@@ -707,11 +681,11 @@ function nextSorobanProblem(token) {
   const nextEntry = sb.flat[sb.browseIndex + 1];
   sb.browseIndex++;
   if (sb.timerMode === 'combined' && nextEntry.sectionIndex !== cur.sectionIndex) {
+    // 種目の切り替わり:待ち時間なしで即座に次の種目の問題を出す(効果音だけで合図)
     sb.sectionIndex = nextEntry.sectionIndex;
-    showSorobanSectionBanner(token, sb.sections[sb.sectionIndex].label, () => showSorobanProblem(token));
-  } else {
-    showSorobanProblem(token);
+    SoundFX.start();
   }
+  showSorobanProblem(token);
 }
 
 // 見てきた問題ぶんのこたえを、まとめて入力する画面に切り替える
@@ -726,18 +700,18 @@ function enterBulkEntry(token) {
 
   $('#sb-problem').style.display = 'none';
   $('#sb-nav-panel').style.display = 'none';
-  $('#sb-banner').style.display = 'none';
   renderBulkEntry();
   $('#sb-entry-panel').style.display = 'block';
 }
 
-function sorobanProblemText(problem) {
-  if (problem.kind === 'mitori') {
-    return problem.terms.map((t, i) => (i === 0 ? '' : (t.op === '-' ? ' － ' : ' ＋ ')) + t.value).join('');
-  } else if (problem.kind === 'kake') {
+// 見取り算/フラッシュ/よみあげ(termsのみ)・かけ算・わり算のどれでも文字列化する(CSV書き出しにも使う)
+function problemText(problem) {
+  if (problem.kind === 'kake') {
     return `${problem.a} × ${problem.b}`;
+  } else if (problem.kind === 'wari') {
+    return `${problem.dividend} ÷ ${problem.divisor}`;
   }
-  return `${problem.dividend} ÷ ${problem.divisor}`;
+  return problem.terms.map((t, i) => (i === 0 ? '' : (t.op === '-' ? ' － ' : ' ＋ ')) + t.value).join('');
 }
 
 function renderBulkEntry() {
@@ -753,7 +727,7 @@ function renderBulkEntry() {
     html += `
       <div class="sb-entry-row">
         <span class="sb-entry-no">${e.indexInSection + 1}</span>
-        <span class="sb-entry-problem">${sorobanProblemText(e.problem)}</span>
+        <span class="sb-entry-problem">${problemText(e.problem)}</span>
         <span class="sb-entry-eq">=</span>
         <input type="number" inputmode="numeric" class="sb-entry-input" data-idx="${i}">
       </div>`;
@@ -783,10 +757,14 @@ function gradeBulkEntry() {
   if (sb.timerMode === 'perSection') {
     const section = sb.sections[sb.sectionIndex];
     const correct = sectionCorrect[sb.sectionIndex] || 0;
+    const weight = SOROBAN_POINTS_PER_KIND[section.kind];
     sb.results.push({
       label: section.label,
+      kind: section.kind,
       correct,
       total: section.count,
+      points: correct * weight,
+      maxPoints: section.count * weight,
       passed: (correct / section.count) >= level.soroban.passRate,
     });
     sb.sectionIndex++;
@@ -799,10 +777,14 @@ function gradeBulkEntry() {
     // combined: 見なかった種目・問題は0点としてあつかう
     sb.results = sb.sections.map((section, sIdx) => {
       const correct = sectionCorrect[sIdx] || 0;
+      const weight = SOROBAN_POINTS_PER_KIND[section.kind];
       return {
         label: section.label,
+        kind: section.kind,
         correct,
         total: section.count,
+        points: correct * weight,
+        maxPoints: section.count * weight,
         passed: (correct / section.count) >= level.soroban.passRate,
       };
     });
@@ -818,37 +800,42 @@ function finishSorobanOverall(token) {
 
   const score = sb.results.reduce((sum, r) => sum + r.correct, 0);
   const total = sb.results.reduce((sum, r) => sum + r.total, 0);
-  const pct = Math.round((score / total) * 100);
+  const points = sb.results.reduce((sum, r) => sum + r.points, 0);
+  const maxPoints = sb.results.reduce((sum, r) => sum + r.maxPoints, 0);
+  const pct = Math.round((points / maxPoints) * 100);
   const passed = sb.timerMode === 'perSection'
     ? sb.results.every(r => r.passed)
-    : (score / total) >= level.soroban.passRate;
+    : (points / maxPoints) >= level.soroban.passRate;
 
-  const key = `soroban_best_soroban_${state.level}_${total}`;
+  const key = `soroban_best_soroban_${state.level}_${maxPoints}`;
   const prevBest = parseInt(localStorage.getItem(key) || '0', 10);
-  const isBest = score > prevBest;
-  if (isBest) localStorage.setItem(key, String(score));
-  const best = isBest ? score : prevBest;
+  const isBest = points > prevBest;
+  if (isBest) localStorage.setItem(key, String(points));
+  const best = isBest ? points : prevBest;
+
+  const problemList = sb.sections.flatMap(section => section.problems.map(p => ({ text: problemText(p), answer: p.answer })));
 
   saveHistoryEntry({
     date: new Date().toISOString(),
     mode: 'soroban',
     level: state.level,
-    score, total, passed,
-    sections: sb.results.map(r => ({ label: r.label, correct: r.correct, total: r.total })),
+    score, total, points, maxPoints, passed,
+    sections: sb.results.map(r => ({ label: r.label, correct: r.correct, total: r.total, points: r.points, maxPoints: r.maxPoints })),
+    problemList,
   });
 
   const passScoreLabel = sb.timerMode === 'perSection'
     ? `各種目 ${Math.round(level.soroban.passRate * 100)}%以上`
-    : `合計 ${Math.round(level.soroban.passRate * 100)}%以上`;
+    : `合計 ${Math.round(level.soroban.passRate * maxPoints)}点以上(${maxPoints}点満点)`;
 
   state.lastResult = {
-    score, total, pct, best, isBest, passed,
+    score, total, points, maxPoints, pct, best, isBest, passed,
     passScoreLabel,
     sections: sb.results,
   };
 
   if (passed) {
-    state.pendingReward = pickRewardItem();
+    state.pendingReward = pickRewardItem(pct);
     showRewardScreen();
   } else {
     showResultScreen();
@@ -874,12 +861,13 @@ function finishSession() {
     mode: state.mode,
     level: state.level,
     score, total, passed,
+    problemList: state.problems.map(p => ({ text: problemText(p), answer: p.answer })),
   });
 
   state.lastResult = { score, total, pct, best, isBest, passed, passScoreLabel: `${level.passScore}問` };
 
   if (passed) {
-    state.pendingReward = pickRewardItem();
+    state.pendingReward = pickRewardItem(pct);
     showRewardScreen();
   } else {
     showResultScreen();
@@ -888,7 +876,10 @@ function finishSession() {
 
 function showResultScreen() {
   const r = state.lastResult;
-  $('#result-score').textContent = `${r.score} / ${r.total} 問 正解 (${r.pct}%)`;
+  const isPoints = r.points !== undefined;
+  $('#result-score').textContent = isPoints
+    ? `${r.points} / ${r.maxPoints} 点 (${r.pct}%)`
+    : `${r.score} / ${r.total} 問 正解 (${r.pct}%)`;
   $('#result-pass').textContent = r.passed
     ? `🎉 合格！(合格ライン ${r.passScoreLabel})`
     : `不合格…(合格ライン ${r.passScoreLabel})`;
@@ -898,12 +889,14 @@ function showResultScreen() {
   sectionsEl.innerHTML = r.sections ? r.sections.map(s => `
     <div class="result-section-row ${s.passed ? 'pass' : 'fail'}">
       <span>${s.label}</span>
-      <span>${s.correct} / ${s.total} (${Math.round(s.correct / s.total * 100)}%)</span>
+      <span>${s.correct} / ${s.total}問${s.points !== undefined ? ` ・ ${s.points}/${s.maxPoints}点` : ''}</span>
       <span>${s.passed ? '✅' : '❌'}</span>
     </div>
   `).join('') : '';
 
-  $('#result-best').textContent = `自己ベスト: ${r.best} / ${r.total} 問` + (r.isBest ? ' 🎉 New!' : '');
+  $('#result-best').textContent = isPoints
+    ? `自己ベスト: ${r.best} / ${r.maxPoints} 点` + (r.isBest ? ' 🎉 New!' : '')
+    : `自己ベスト: ${r.best} / ${r.total} 問` + (r.isBest ? ' 🎉 New!' : '');
 
   showScreen('screen-result');
 }
