@@ -19,7 +19,7 @@
     <div class="clouds"></div>
     <div class="title-wrap">
       <h1 class="game-title"><span>そろばん</span><span class="accent">クラフト</span></h1>
-      <p class="subtitle">フラッシュ暗算 &amp; よみあげ暗算</p>
+      <p class="subtitle">フラッシュ暗算 &amp; よみあげ暗算 &amp; そろばん</p>
       <button id="btn-start" class="mc-btn mc-btn-lg">▶ はじめる</button>
       <button id="btn-howto" class="mc-btn">? あそびかた</button>
       <button id="btn-history" class="mc-btn">📜 きろく</button>
@@ -35,6 +35,7 @@
       <ul class="howto-list">
         <li><b>フラッシュ暗算</b>：数字が つぎつぎ 画面に出るよ。ぜんぶ たし算・ひき算して、こたえを入力しよう。</li>
         <li><b>よみあげ暗算</b>：数字を 声で 読み上げるよ。画面には数字が出ないから、耳で聞いてこたえよう。</li>
+        <li><b>そろばん</b>：実さいの そろばんで けいさんして こたえを入力するよ。3級以上は30分、5級・4級は 見取り算・かけ算・わり算をそれぞれ10分ずつ はかるよ。</li>
         <li>級(きゅう)を えらぶと、むずかしさが変わるよ。数字が大きい級ほど やさしくて、1級がいちばん むずかしいよ。6級はフラッシュ暗算だけの、いちばんやさしい級だよ。</li>
       </ul>
       <button class="mc-btn back-btn" data-back="screen-title">もどる</button>
@@ -74,6 +75,10 @@
       <button class="mc-btn mode-btn" data-mode="yomiage">
         <span class="mode-icon">🔊</span>
         <span>よみあげ暗算</span>
+      </button>
+      <button class="mc-btn mode-btn" data-mode="soroban">
+        <span class="mode-icon">🧮</span>
+        <span>そろばん</span>
       </button>
     </div>
     <button class="mc-btn back-btn" data-back="screen-title">もどる</button>
@@ -135,12 +140,53 @@
     <div id="feedback" class="feedback"></div>
   </section>
 
+  <!-- そろばんモード プレイ画面 -->
+  <section id="screen-soroban-play" class="screen mc-bg-night">
+    <div class="hud">
+      <button id="sb-btn-quit" class="mc-btn hud-quit">✕ やめる</button>
+      <div class="hud-info">
+        <span id="sb-hud-progress" class="hud-item">1 / 10</span>
+        <span id="sb-hud-timer" class="hud-item hud-timer">⏱ 10:00</span>
+        <span id="sb-hud-section" class="hud-item"></span>
+      </div>
+    </div>
+
+    <div class="play-stage">
+      <!-- 種目切り替えバナー -->
+      <div id="sb-banner" class="sb-banner"></div>
+
+      <!-- 問題表示(見取り算/かけ算/わり算) -->
+      <div id="sb-problem" class="sb-problem"></div>
+
+      <!-- 解答パネル -->
+      <div id="sb-answer-panel" class="mc-panel answer-panel">
+        <p class="answer-label">こたえは？</p>
+        <div id="sb-answer-display" class="answer-display">0</div>
+        <div class="keypad">
+          <button class="mc-btn sb-key" data-key="7">7</button>
+          <button class="mc-btn sb-key" data-key="8">8</button>
+          <button class="mc-btn sb-key" data-key="9">9</button>
+          <button class="mc-btn sb-key" data-key="4">4</button>
+          <button class="mc-btn sb-key" data-key="5">5</button>
+          <button class="mc-btn sb-key" data-key="6">6</button>
+          <button class="mc-btn sb-key" data-key="1">1</button>
+          <button class="mc-btn sb-key" data-key="2">2</button>
+          <button class="mc-btn sb-key" data-key="3">3</button>
+          <button id="sb-key-clear" class="mc-btn sb-key key-func">C</button>
+          <button class="mc-btn sb-key" data-key="0">0</button>
+          <button id="sb-key-enter" class="mc-btn sb-key key-func key-enter">決定</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- 結果画面 -->
   <section id="screen-result" class="screen mc-bg-night">
     <div class="mc-panel result-panel">
       <h2 class="panel-title">けっか</h2>
       <p id="result-score" class="result-score"></p>
       <p id="result-pass" class="result-pass"></p>
+      <div id="result-sections" class="result-sections"></div>
       <p id="result-best" class="result-best"></p>
       <div class="result-btns">
         <button id="btn-retry" class="mc-btn">もう一度</button>

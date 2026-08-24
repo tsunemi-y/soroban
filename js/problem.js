@@ -14,21 +14,15 @@ function pickDigits(digitsConfig) {
   return digitsConfig;
 }
 
-// terms: [{ value:number, op:'+'|'-' }], answer: number
-// mode('flash'|'yomiage') によって、同じ級でも桁数・口数(LEVELS[levelKey][mode])が異なる
-// allowSubtractOverride を渡すと、その問題だけ level.allowSubtract の設定を上書きできる
-// (例: 3級の「加算のみ3問+加減算3問」のような構成に使う)
-function generateProblem(levelKey, mode, allowSubtractOverride) {
-  const level = LEVELS[levelKey];
-  const shape = level[mode];
-  const allowSubtract = allowSubtractOverride !== undefined ? allowSubtractOverride : level.allowSubtract;
+// terms: [{ value:number, op:'+'|'-' }], answer: number を組み立てる共通ロジック
+function buildTermsSequence(digits, termCount, allowSubtract) {
   const terms = [];
   let total = 0;
 
-  for (let i = 0; i < shape.terms; i++) {
-    const value = randDigitsValue(pickDigits(shape.digits));
+  for (let i = 0; i < termCount; i++) {
+    const value = randDigitsValue(pickDigits(digits));
     let op = '+';
-    const isLast = i === shape.terms - 1;
+    const isLast = i === termCount - 1;
 
     // よみあげの最後の項は「◯円では」とだけ言い、演算を読み上げないため、
     // 最後の項は必ず足し算にする(そうしないと読み上げた数字と答えが合わなくなる)
@@ -40,7 +34,39 @@ function generateProblem(levelKey, mode, allowSubtractOverride) {
     terms.push({ value, op });
   }
 
-  return { terms, answer: total, level: levelKey };
+  return { terms, answer: total };
+}
+
+// mode('flash'|'yomiage') によって、同じ級でも桁数・口数(LEVELS[levelKey][mode])が異なる
+// allowSubtractOverride を渡すと、その問題だけ level.allowSubtract の設定を上書きできる
+// (例: 3級の「加算のみ3問+加減算3問」のような構成に使う)
+function generateProblem(levelKey, mode, allowSubtractOverride) {
+  const level = LEVELS[levelKey];
+  const shape = level[mode];
+  const allowSubtract = allowSubtractOverride !== undefined ? allowSubtractOverride : level.allowSubtract;
+  const result = buildTermsSequence(shape.digits, shape.terms, allowSubtract);
+  return { terms: result.terms, answer: result.answer, level: levelKey };
+}
+
+// そろばんモードの見取り算(加減算はつねに混ぜる)
+function generateMitoriProblem(digits, termCount) {
+  const result = buildTermsSequence(digits, termCount, true);
+  return { kind: 'mitori', terms: result.terms, answer: result.answer };
+}
+
+// そろばんモードのかけ算: digitsA桁 × digitsB桁
+function generateKakeProblem(digitsA, digitsB) {
+  const a = randDigitsValue(digitsA);
+  const b = randDigitsValue(digitsB);
+  return { kind: 'kake', a, b, answer: a * b };
+}
+
+// そろばんモードのわり算: わりきれるように商から逆算してつくる
+function generateWariProblem(divisorDigits, quotientDigits) {
+  const divisor = randDigitsValue(divisorDigits);
+  const quotient = randDigitsValue(quotientDigits);
+  const dividend = divisor * quotient;
+  return { kind: 'wari', dividend, divisor, answer: quotient };
 }
 
 // 読み上げ用の日本語数詞に変換(大きくても6桁程度でOK)

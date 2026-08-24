@@ -23,7 +23,7 @@ function showScreen(id) {
   if (target) target.classList.add('active');
 }
 
-const MODE_NAMES = { flash: 'フラッシュ暗算', yomiage: 'よみあげ暗算' };
+const MODE_NAMES = { flash: 'フラッシュ暗算', yomiage: 'よみあげ暗算', soroban: 'そろばん' };
 
 /* ---------- 合格ごほうび(アイテムパック) ---------- */
 const RARITY_META = {
@@ -152,24 +152,44 @@ function renderHistory() {
   }).join('');
 }
 
+function sorobanLevelDesc(lv) {
+  const sections = lv.soroban.sections;
+  if (sections.length === 1) {
+    const s = sections[0];
+    return `${s.label} ${Math.round(s.timeLimitSec / 60)}分`;
+  }
+  const minutes = Math.round(sections[0].timeLimitSec / 60);
+  return `見取り/かけ/わり 各${minutes}分`;
+}
+
 /* ---------- 級選択画面の生成(選んだモードに応じて桁数・口数の表示が変わる) ---------- */
 function buildLevelGrid() {
   const grid = $('#level-grid');
   grid.innerHTML = '';
   LEVEL_ORDER_BY_MODE[state.mode].forEach(key => {
     const lv = LEVELS[key];
-    const shape = lv[state.mode];
     const card = document.createElement('div');
     card.className = `level-card lv-${key}`;
-    const digitsLabel = Array.isArray(shape.digits) ? shape.digits.join('-') : shape.digits;
+    let descHtml;
+    if (state.mode === 'soroban') {
+      descHtml = sorobanLevelDesc(lv);
+    } else {
+      const shape = lv[state.mode];
+      const digitsLabel = Array.isArray(shape.digits) ? shape.digits.join('-') : shape.digits;
+      descHtml = `${digitsLabel}桁 × ${shape.terms}口`;
+    }
     card.innerHTML = `
       <span class="lv-name">${lv.name}</span>
-      <span class="lv-desc">${digitsLabel}桁 × ${shape.terms}口</span>
+      <span class="lv-desc">${descHtml}</span>
     `;
     card.addEventListener('click', () => {
       SoundFX.click();
       state.level = key;
-      startSession();
+      if (state.mode === 'soroban') {
+        startSorobanSession();
+      } else {
+        startSession();
+      }
     });
     grid.appendChild(card);
   });
@@ -206,13 +226,21 @@ function initNav() {
     });
   });
 
-  $('#btn-retry').addEventListener('click', () => { SoundFX.click(); startSession(); });
+  $('#btn-retry').addEventListener('click', () => {
+    SoundFX.click();
+    if (state.mode === 'soroban') startSorobanSession(); else startSession();
+  });
   $('#btn-to-mode').addEventListener('click', () => { SoundFX.click(); showScreen('screen-mode'); });
   $('#btn-to-title').addEventListener('click', () => { SoundFX.click(); showScreen('screen-title'); });
 
   $('#btn-quit').addEventListener('click', () => {
     SoundFX.click();
     quitSession();
+  });
+
+  $('#sb-btn-quit').addEventListener('click', () => {
+    SoundFX.click();
+    quitSorobanSession();
   });
 
   $('#reward-pack').addEventListener('click', openRewardPack);
@@ -242,6 +270,29 @@ function initKeypad() {
     if (e.key >= '0' && e.key <= '9') appendDigit(e.key);
     else if (e.key === 'Backspace') { state.answerStr = state.answerStr.slice(0, -1); renderAnswer(); }
     else if (e.key === 'Enter') submitAnswer();
+  });
+}
+
+function initSorobanKeypad() {
+  $all('.sb-key[data-key]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      SoundFX.click();
+      appendSorobanDigit(btn.dataset.key);
+    });
+  });
+  $('#sb-key-clear').addEventListener('click', () => {
+    SoundFX.click();
+    state.soroban.answerStr = '';
+    renderSorobanAnswer();
+  });
+  $('#sb-key-enter').addEventListener('click', () => { submitSorobanAnswer(); });
+
+  document.addEventListener('keydown', (e) => {
+    if (!$('#screen-soroban-play').classList.contains('active')) return;
+    if ($('#sb-answer-panel').style.display === 'none') return;
+    if (e.key >= '0' && e.key <= '9') appendSorobanDigit(e.key);
+    else if (e.key === 'Backspace') { state.soroban.answerStr = state.soroban.answerStr.slice(0, -1); renderSorobanAnswer(); }
+    else if (e.key === 'Enter') submitSorobanAnswer();
   });
 }
 
@@ -401,6 +452,221 @@ function showFeedback(correct, answer) {
   setTimeout(() => box.classList.remove('show'), 1100);
 }
 
+/* ---------- そろばんモード(実際にそろばんで計算し、答えだけ入力する) ---------- */
+function resolveSorobanSections(levelKey) {
+  const soroban = LEVELS[levelKey].soroban;
+  return soroban.sections.map(section => {
+    let problems;
+    if (section.kind === 'mitori') {
+      problems = Array.from({ length: section.count }, () => generateMitoriProblem(section.digits, section.terms));
+    } else if (section.kind === 'kake') {
+      problems = Array.from({ length: section.count }, () => generateKakeProblem(section.digitsA, section.digitsB));
+    } else {
+      problems = Array.from({ length: section.count }, () => generateWariProblem(section.divisorDigits, section.quotientDigits));
+    }
+    return { label: section.label, kind: section.kind, count: section.count, timeLimitSec: section.timeLimitSec, problems, correct: 0 };
+  });
+}
+
+function startSorobanSession() {
+  state.sbToken = (state.sbToken || 0) + 1;
+  state.soroban = {
+    sections: resolveSorobanSections(state.level),
+    sectionIndex: 0,
+    problemIndex: 0,
+    answerStr: '',
+    timerId: null,
+    deadline: 0,
+    results: [],
+  };
+  showScreen('screen-soroban-play');
+  runSorobanSection(state.sbToken);
+}
+
+// 出題の途中でも抜けられるように、タイマーを止めて級選択に戻る
+function quitSorobanSession() {
+  state.sbToken = (state.sbToken || 0) + 1;
+  if (state.soroban && state.soroban.timerId) clearInterval(state.soroban.timerId);
+  showScreen('screen-level');
+}
+
+async function runSorobanSection(token) {
+  if (token !== state.sbToken) return;
+  const sb = state.soroban;
+  const section = sb.sections[sb.sectionIndex];
+  sb.problemIndex = 0;
+
+  $('#sb-hud-section').textContent = section.label;
+  updateSorobanHud();
+
+  const banner = $('#sb-banner');
+  const problemEl = $('#sb-problem');
+  const answerPanel = $('#sb-answer-panel');
+
+  banner.textContent = `${section.label} スタート！`;
+  banner.style.display = 'flex';
+  problemEl.style.display = 'none';
+  answerPanel.style.display = 'none';
+  SoundFX.start();
+  await sleep(1200);
+  if (token !== state.sbToken) return;
+  banner.style.display = 'none';
+  problemEl.style.display = 'flex';
+  answerPanel.style.display = 'block';
+
+  sb.deadline = Date.now() + section.timeLimitSec * 1000;
+  updateSorobanTimerDisplay(section.timeLimitSec);
+  if (sb.timerId) clearInterval(sb.timerId);
+  sb.timerId = setInterval(() => tickSorobanTimer(token), 1000);
+
+  showSorobanProblem(token);
+}
+
+function tickSorobanTimer(token) {
+  if (token !== state.sbToken) return;
+  const sb = state.soroban;
+  const remainingMs = sb.deadline - Date.now();
+  const remainingSec = Math.max(0, Math.ceil(remainingMs / 1000));
+  updateSorobanTimerDisplay(remainingSec);
+  if (remainingMs <= 0) {
+    clearInterval(sb.timerId);
+    finishSorobanSection(token);
+  }
+}
+
+function updateSorobanTimerDisplay(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  $('#sb-hud-timer').textContent = `⏱ ${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function updateSorobanHud() {
+  const sb = state.soroban;
+  const section = sb.sections[sb.sectionIndex];
+  $('#sb-hud-progress').textContent = `${sb.problemIndex + 1} / ${section.count}`;
+}
+
+function showSorobanProblem(token) {
+  if (token !== state.sbToken) return;
+  const sb = state.soroban;
+  const section = sb.sections[sb.sectionIndex];
+  const problem = section.problems[sb.problemIndex];
+  updateSorobanHud();
+
+  const el = $('#sb-problem');
+  if (problem.kind === 'mitori') {
+    el.innerHTML = '<div class="sb-mitori">' +
+      problem.terms.map((t, i) => {
+        const sign = i === 0 ? '' : (t.op === '-' ? '－' : '＋');
+        return `<div class="sb-mitori-row"><span class="sb-mitori-sign">${sign}</span><span class="sb-mitori-value">${t.value}</span></div>`;
+      }).join('') +
+      '<div class="sb-mitori-line"></div></div>';
+  } else if (problem.kind === 'kake') {
+    el.innerHTML = `<div class="sb-horizontal">${problem.a} × ${problem.b}</div>`;
+  } else {
+    el.innerHTML = `<div class="sb-horizontal">${problem.dividend} ÷ ${problem.divisor}</div>`;
+  }
+
+  sb.answerStr = '';
+  renderSorobanAnswer();
+}
+
+function renderSorobanAnswer() {
+  $('#sb-answer-display').textContent = state.soroban.answerStr === '' ? '0' : state.soroban.answerStr;
+}
+
+function appendSorobanDigit(d) {
+  const sb = state.soroban;
+  if (sb.answerStr.length >= 7) return;
+  sb.answerStr = sb.answerStr === '0' ? d : sb.answerStr + d;
+  renderSorobanAnswer();
+}
+
+function submitSorobanAnswer() {
+  const token = state.sbToken;
+  const sb = state.soroban;
+  const section = sb.sections[sb.sectionIndex];
+  const problem = section.problems[sb.problemIndex];
+  const userAnswer = parseInt(sb.answerStr || '0', 10);
+  const correct = userAnswer === problem.answer;
+
+  if (correct) { section.correct++; SoundFX.correct(); }
+  else { SoundFX.wrong(); }
+
+  showFeedback(correct, problem.answer);
+
+  sb.problemIndex++;
+  setTimeout(() => {
+    if (token !== state.sbToken) return;
+    if (sb.problemIndex >= section.count) {
+      clearInterval(sb.timerId);
+      finishSorobanSection(token);
+    } else {
+      showSorobanProblem(token);
+    }
+  }, 1000);
+}
+
+function finishSorobanSection(token) {
+  if (token !== state.sbToken) return;
+  const sb = state.soroban;
+  const section = sb.sections[sb.sectionIndex];
+  const level = LEVELS[state.level];
+  const passRate = level.soroban.passRate;
+  const sectionPassed = (section.correct / section.count) >= passRate;
+
+  sb.results.push({
+    label: section.label,
+    correct: section.correct,
+    total: section.count,
+    passed: sectionPassed,
+  });
+
+  sb.sectionIndex++;
+  if (sb.sectionIndex < sb.sections.length) {
+    runSorobanSection(token);
+  } else {
+    finishSorobanOverall(token);
+  }
+}
+
+function finishSorobanOverall(token) {
+  if (token !== state.sbToken) return;
+  const sb = state.soroban;
+  const level = LEVELS[state.level];
+
+  const score = sb.results.reduce((sum, r) => sum + r.correct, 0);
+  const total = sb.results.reduce((sum, r) => sum + r.total, 0);
+  const pct = Math.round((score / total) * 100);
+  const passed = sb.results.every(r => r.passed);
+
+  const key = `soroban_best_soroban_${state.level}_${total}`;
+  const prevBest = parseInt(localStorage.getItem(key) || '0', 10);
+  const isBest = score > prevBest;
+  if (isBest) localStorage.setItem(key, String(score));
+  const best = isBest ? score : prevBest;
+
+  saveHistoryEntry({
+    date: new Date().toISOString(),
+    mode: 'soroban',
+    level: state.level,
+    score, total, passed,
+  });
+
+  state.lastResult = {
+    score, total, pct, best, isBest, passed,
+    passScoreLabel: `各種目 ${Math.round(level.soroban.passRate * 100)}%以上`,
+    sections: sb.results,
+  };
+
+  if (passed) {
+    state.pendingReward = pickRewardItem();
+    showRewardScreen();
+  } else {
+    showResultScreen();
+  }
+}
+
 function finishSession() {
   SpeechEngine.cancel();
   const total = state.problems.length;
@@ -422,7 +688,7 @@ function finishSession() {
     score, total, passed,
   });
 
-  state.lastResult = { score, total, pct, best, isBest, passed, passScore: level.passScore };
+  state.lastResult = { score, total, pct, best, isBest, passed, passScoreLabel: `${level.passScore}問` };
 
   if (passed) {
     state.pendingReward = pickRewardItem();
@@ -436,9 +702,19 @@ function showResultScreen() {
   const r = state.lastResult;
   $('#result-score').textContent = `${r.score} / ${r.total} 問 正解 (${r.pct}%)`;
   $('#result-pass').textContent = r.passed
-    ? `🎉 合格！(合格ライン ${r.passScore}問)`
-    : `不合格…(合格ライン ${r.passScore}問)`;
+    ? `🎉 合格！(合格ライン ${r.passScoreLabel})`
+    : `不合格…(合格ライン ${r.passScoreLabel})`;
   $('#result-pass').className = 'result-pass ' + (r.passed ? 'pass' : 'fail');
+
+  const sectionsEl = $('#result-sections');
+  sectionsEl.innerHTML = r.sections ? r.sections.map(s => `
+    <div class="result-section-row ${s.passed ? 'pass' : 'fail'}">
+      <span>${s.label}</span>
+      <span>${s.correct} / ${s.total} (${Math.round(s.correct / s.total * 100)}%)</span>
+      <span>${s.passed ? '✅' : '❌'}</span>
+    </div>
+  `).join('') : '';
+
   $('#result-best').textContent = `自己ベスト: ${r.best} / ${r.total} 問` + (r.isBest ? ' 🎉 New!' : '');
 
   showScreen('screen-result');
@@ -480,4 +756,5 @@ document.addEventListener('DOMContentLoaded', () => {
   buildLevelGrid();
   initNav();
   initKeypad();
+  initSorobanKeypad();
 });
