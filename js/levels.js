@@ -6,15 +6,18 @@
 //          そろばん教室の実際の級位表(2桁固定・級ごとの口数と制限時間)を再現している
 // yomiage: { digits, terms, speechRate, speechPause } … よみあげ暗算用
 // soroban: { timerMode, sections, passRate, timeLimitSec } … そろばんモード
-//          (実際にそろばんで計算し、答えだけ入力する)用
-//          timerMode: 'perSection' … 種目ごとに別々に時間を測り、全種目が個別にpassRate以上で合格(5級・4級)
+//          (実際にそろばんで計算し、答えだけ入力する)用。日本商工会議所 珠算能力検定試験の
+//          実際の問題形式(見取り算10問+かけ算20問+わり算20問、300点満点)を踏襲している
+//          timerMode: 'perSection' … 種目ごとに別々に時間を測り、全種目が個別にpassRate以上で合格
 //                     'combined'   … 全種目まとめて1つの制限時間(timeLimitSec)で測り、
-//                                    全種目の合計正答率がpassRate以上で合格(3級〜1級)
+//                                    全種目の合計得点がpassRate以上で合格(全級で採用)
 //          sections: 出題する種目の配列。kind別に必要なフィールドが異なる
 //            見取り算(mitori): { kind:'mitori', label, digits, terms, count, timeLimitSec(perSectionのみ) }
-//            かけ算(kake):     { kind:'kake', label, digitsA, digitsB, count, timeLimitSec(perSectionのみ) }
-//            わり算(wari):     { kind:'wari', label, divisorDigits, quotientDigits, count, timeLimitSec(perSectionのみ) }
-//          passRate: 合格に必要な正答率
+//            かけ算(kake):     { kind:'kake', label, totalDigits, decimalEnabled, count, timeLimitSec(perSectionのみ) }
+//                              totalDigits: 2つの項の桁数の合計(実際の検定と同じ配分ルール)
+//            わり算(wari):     { kind:'wari', label, totalDigits, decimalEnabled, count, timeLimitSec(perSectionのみ) }
+//                              totalDigits: わる数の桁数+商の桁数の合計
+//          passRate: 合格に必要な得点率
 //          timeLimitSec: combinedモードでの全種目共通の制限時間
 // allowSubtract: ひき算を混ぜるか(モード共通)
 // passScore: この問題数以上正解で合格(フラッシュ・よみあげ用)
@@ -30,12 +33,13 @@ const LEVELS = {
     flash: { digits: 2, terms: 4, flashInterval: 1750 },     // 2ケタ/4口/7秒
     yomiage: { digits: [1, 2], terms: 7, speechRate: 0.8, speechPause: 600 },
     soroban: {
-      timerMode: 'perSection',
-      passRate: 0.7,
+      timerMode: 'combined',
+      timeLimitSec: 1800,
+      passRate: 0.8,
       sections: [
-        { kind: 'mitori', label: '見取り算', digits: 2, terms: 5, count: 10, timeLimitSec: 600 },
-        { kind: 'kake', label: 'かけ算', digitsA: 2, digitsB: 1, count: 10, timeLimitSec: 600 },
-        { kind: 'wari', label: 'わり算', divisorDigits: 1, quotientDigits: 2, count: 10, timeLimitSec: 600 },
+        { kind: 'mitori', label: '見取り算', digits: 4, terms: 10, count: 10 },
+        { kind: 'kake', label: 'かけ算', totalDigits: 6, decimalEnabled: false, count: 20 },
+        { kind: 'wari', label: 'わり算', totalDigits: 5, decimalEnabled: false, count: 20 },
       ],
     },
   },
@@ -44,12 +48,13 @@ const LEVELS = {
     flash: { digits: 2, terms: 5, flashInterval: 1500 },     // 2ケタ/5口/7.5秒
     yomiage: { digits: 2, terms: 7, speechRate: 0.9, speechPause: 500 },
     soroban: {
-      timerMode: 'perSection',
-      passRate: 0.7,
+      timerMode: 'combined',
+      timeLimitSec: 1800,
+      passRate: 0.8,
       sections: [
-        { kind: 'mitori', label: '見取り算', digits: 2, terms: 6, count: 10, timeLimitSec: 600 },
-        { kind: 'kake', label: 'かけ算', digitsA: 2, digitsB: 2, count: 10, timeLimitSec: 600 },
-        { kind: 'wari', label: 'わり算', divisorDigits: 1, quotientDigits: 3, count: 10, timeLimitSec: 600 },
+        { kind: 'mitori', label: '見取り算', digits: 5, terms: 10, count: 10 },
+        { kind: 'kake', label: 'かけ算', totalDigits: 7, decimalEnabled: false, count: 20 },
+        { kind: 'wari', label: 'わり算', totalDigits: 6, decimalEnabled: false, count: 20 },
       ],
     },
   },
@@ -62,9 +67,9 @@ const LEVELS = {
       timeLimitSec: 1800,
       passRate: 0.8,
       sections: [
-        { kind: 'mitori', label: '見取り算', digits: 2, terms: 10, count: 10 },
-        { kind: 'kake', label: 'かけ算', digitsA: 3, digitsB: 2, count: 20 },
-        { kind: 'wari', label: 'わり算', divisorDigits: 2, quotientDigits: 3, count: 20 },
+        { kind: 'mitori', label: '見取り算', digits: 6, terms: 10, count: 10 },
+        { kind: 'kake', label: 'かけ算', totalDigits: 7, decimalEnabled: true, count: 20 },
+        { kind: 'wari', label: 'わり算', totalDigits: 6, decimalEnabled: true, count: 20 },
       ],
     },
     sessionPlan: {
@@ -84,9 +89,9 @@ const LEVELS = {
       timeLimitSec: 1800,
       passRate: 0.8,
       sections: [
-        { kind: 'mitori', label: '見取り算', digits: 3, terms: 10, count: 10 },
-        { kind: 'kake', label: 'かけ算', digitsA: 3, digitsB: 3, count: 20 },
-        { kind: 'wari', label: 'わり算', divisorDigits: 2, quotientDigits: 4, count: 20 },
+        { kind: 'mitori', label: '見取り算', digits: 8, terms: 10, count: 10 },
+        { kind: 'kake', label: 'かけ算', totalDigits: 9, decimalEnabled: true, count: 20 },
+        { kind: 'wari', label: 'わり算', totalDigits: 8, decimalEnabled: true, count: 20 },
       ],
     },
   },
@@ -99,9 +104,9 @@ const LEVELS = {
       timeLimitSec: 1800,
       passRate: 0.8,
       sections: [
-        { kind: 'mitori', label: '見取り算', digits: 4, terms: 10, count: 10 },
-        { kind: 'kake', label: 'かけ算', digitsA: 4, digitsB: 3, count: 20 },
-        { kind: 'wari', label: 'わり算', divisorDigits: 3, quotientDigits: 4, count: 20 },
+        { kind: 'mitori', label: '見取り算', digits: 10, terms: 10, count: 10 },
+        { kind: 'kake', label: 'かけ算', totalDigits: 11, decimalEnabled: true, count: 20 },
+        { kind: 'wari', label: 'わり算', totalDigits: 10, decimalEnabled: true, count: 20 },
       ],
     },
   },

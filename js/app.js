@@ -516,9 +516,9 @@ function resolveSorobanSections(levelKey) {
     if (section.kind === 'mitori') {
       problems = Array.from({ length: section.count }, () => generateMitoriProblem(section.digits, section.terms));
     } else if (section.kind === 'kake') {
-      problems = Array.from({ length: section.count }, () => generateKakeProblem(section.digitsA, section.digitsB));
+      problems = Array.from({ length: section.count }, () => generateKakeProblem(section.totalDigits, section.decimalEnabled));
     } else {
-      problems = Array.from({ length: section.count }, () => generateWariProblem(section.divisorDigits, section.quotientDigits));
+      problems = Array.from({ length: section.count }, () => generateWariProblem(section.totalDigits, section.decimalEnabled));
     }
     return { label: section.label, kind: section.kind, count: section.count, timeLimitSec: section.timeLimitSec, problems };
   });
@@ -631,6 +631,16 @@ function updateSorobanHud() {
   $('#sb-hud-section').textContent = section.label;
 }
 
+// 数値を「1,234.5」のようにカンマ区切り+指定した小数桁数で表示用に整形する
+function formatSorobanNumber(n, decimalPlaces) {
+  const fixed = decimalPlaces > 0 ? n.toFixed(decimalPlaces) : String(Math.round(n));
+  const [intPart, fracPart] = fixed.split('.');
+  const negative = intPart.startsWith('-');
+  const digitsOnly = negative ? intPart.slice(1) : intPart;
+  const withCommas = (negative ? '-' : '') + digitsOnly.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return fracPart ? `${withCommas}.${fracPart}` : withCommas;
+}
+
 function showSorobanProblem(token) {
   if (token !== state.sbToken) return;
   const sb = state.soroban;
@@ -644,13 +654,13 @@ function showSorobanProblem(token) {
     el.innerHTML = noHtml + '<div class="sb-mitori">' +
       problem.terms.map((t, i) => {
         const sign = i === 0 ? '' : (t.op === '-' ? '－' : '＋');
-        return `<div class="sb-mitori-row"><span class="sb-mitori-sign">${sign}</span><span class="sb-mitori-value">${t.value}</span></div>`;
+        return `<div class="sb-mitori-row"><span class="sb-mitori-sign">${sign}</span><span class="sb-mitori-value">${formatSorobanNumber(t.value, 0)}</span></div>`;
       }).join('') +
       '<div class="sb-mitori-line"></div></div>';
   } else if (problem.kind === 'kake') {
-    el.innerHTML = noHtml + `<div class="sb-horizontal">${problem.a} × ${problem.b}</div>`;
+    el.innerHTML = noHtml + `<div class="sb-horizontal">${formatSorobanNumber(problem.a, problem.aDecimalPlaces)} × ${formatSorobanNumber(problem.b, problem.bDecimalPlaces)}</div>`;
   } else {
-    el.innerHTML = noHtml + `<div class="sb-horizontal">${problem.dividend} ÷ ${problem.divisor}</div>`;
+    el.innerHTML = noHtml + `<div class="sb-horizontal">${formatSorobanNumber(problem.dividend, problem.dividendDecimalPlaces)} ÷ ${formatSorobanNumber(problem.divisor, problem.divisorDecimalPlaces)}</div>`;
   }
 
   $('#sb-btn-back').disabled = sb.browseIndex === 0;
@@ -707,11 +717,11 @@ function enterBulkEntry(token) {
 // 見取り算/フラッシュ/よみあげ(termsのみ)・かけ算・わり算のどれでも文字列化する(CSV書き出しにも使う)
 function problemText(problem) {
   if (problem.kind === 'kake') {
-    return `${problem.a} × ${problem.b}`;
+    return `${formatSorobanNumber(problem.a, problem.aDecimalPlaces)} × ${formatSorobanNumber(problem.b, problem.bDecimalPlaces)}`;
   } else if (problem.kind === 'wari') {
-    return `${problem.dividend} ÷ ${problem.divisor}`;
+    return `${formatSorobanNumber(problem.dividend, problem.dividendDecimalPlaces)} ÷ ${formatSorobanNumber(problem.divisor, problem.divisorDecimalPlaces)}`;
   }
-  return problem.terms.map((t, i) => (i === 0 ? '' : (t.op === '-' ? ' － ' : ' ＋ ')) + t.value).join('');
+  return problem.terms.map((t, i) => (i === 0 ? '' : (t.op === '-' ? ' － ' : ' ＋ ')) + formatSorobanNumber(t.value, 0)).join('');
 }
 
 function renderBulkEntry() {
@@ -729,7 +739,7 @@ function renderBulkEntry() {
         <span class="sb-entry-no">${e.indexInSection + 1}</span>
         <span class="sb-entry-problem">${problemText(e.problem)}</span>
         <span class="sb-entry-eq">=</span>
-        <input type="number" inputmode="numeric" class="sb-entry-input" data-idx="${i}">
+        <input type="number" inputmode="decimal" step="any" class="sb-entry-input" data-idx="${i}">
       </div>`;
   });
   listEl.innerHTML = html;
@@ -749,8 +759,9 @@ function gradeBulkEntry() {
   const level = LEVELS[state.level];
   const sectionCorrect = {};
   sb.entryList.forEach((e, i) => {
-    const userAnswer = parseInt(sb.entryAnswers[i] || '', 10);
-    const correct = userAnswer === e.problem.answer;
+    const userAnswer = parseFloat(sb.entryAnswers[i] || '');
+    // 小数の答え(かけ算・わり算)もあるので、浮動小数点の誤差を許容して比較する
+    const correct = Math.abs(userAnswer - e.problem.answer) < 1e-6;
     if (correct) sectionCorrect[e.sectionIndex] = (sectionCorrect[e.sectionIndex] || 0) + 1;
   });
 
