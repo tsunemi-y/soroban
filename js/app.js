@@ -153,12 +153,11 @@ function renderHistory() {
 }
 
 function sorobanLevelDesc(lv) {
-  const sections = lv.soroban.sections;
-  if (sections.length === 1) {
-    const s = sections[0];
-    return `${s.label} ${Math.round(s.timeLimitSec / 60)}分`;
+  const soroban = lv.soroban;
+  if (soroban.timerMode === 'combined') {
+    return `全種目 ${Math.round(soroban.timeLimitSec / 60)}分`;
   }
-  const minutes = Math.round(sections[0].timeLimitSec / 60);
+  const minutes = Math.round(soroban.sections[0].timeLimitSec / 60);
   return `見取り/かけ/わり 各${minutes}分`;
 }
 
@@ -470,7 +469,9 @@ function resolveSorobanSections(levelKey) {
 
 function startSorobanSession() {
   state.sbToken = (state.sbToken || 0) + 1;
+  const soroban = LEVELS[state.level].soroban;
   state.soroban = {
+    timerMode: soroban.timerMode,
     sections: resolveSorobanSections(state.level),
     sectionIndex: 0,
     problemIndex: 0,
@@ -478,8 +479,17 @@ function startSorobanSession() {
     timerId: null,
     deadline: 0,
     results: [],
+    processing: false,
   };
   showScreen('screen-soroban-play');
+
+  if (soroban.timerMode === 'combined') {
+    // combinedモードは全種目を1つの制限時間で通して測る
+    state.soroban.deadline = Date.now() + soroban.timeLimitSec * 1000;
+    updateSorobanTimerDisplay(soroban.timeLimitSec);
+    state.soroban.timerId = setInterval(() => tickSorobanTimer(state.sbToken), 1000);
+  }
+
   runSorobanSection(state.sbToken);
 }
 
@@ -514,10 +524,15 @@ async function runSorobanSection(token) {
   problemEl.style.display = 'flex';
   answerPanel.style.display = 'block';
 
-  sb.deadline = Date.now() + section.timeLimitSec * 1000;
-  updateSorobanTimerDisplay(section.timeLimitSec);
-  if (sb.timerId) clearInterval(sb.timerId);
-  sb.timerId = setInterval(() => tickSorobanTimer(token), 1000);
+  if (sb.timerMode === 'perSection') {
+    sb.deadline = Date.now() + section.timeLimitSec * 1000;
+    updateSorobanTimerDisplay(section.timeLimitSec);
+    if (sb.timerId) clearInterval(sb.timerId);
+    sb.timerId = setInterval(() => tickSorobanTimer(token), 1000);
+  } else {
+    // combinedモードはstartSorobanSessionで開始した共通タイマーをそのまま使う
+    updateSorobanTimerDisplay(Math.max(0, Math.ceil((sb.deadline - Date.now()) / 1000)));
+  }
 
   showSorobanProblem(token);
 }
@@ -530,7 +545,11 @@ function tickSorobanTimer(token) {
   updateSorobanTimerDisplay(remainingSec);
   if (remainingMs <= 0) {
     clearInterval(sb.timerId);
-    finishSorobanSection(token);
+    if (sb.timerMode === 'perSection') {
+      finishSorobanSection(token);
+    } else {
+      finishSorobanCombinedTimeout(token);
+    }
   }
 }
 
@@ -549,6 +568,7 @@ function updateSorobanHud() {
 function showSorobanProblem(token) {
   if (token !== state.sbToken) return;
   const sb = state.soroban;
+  sb.processing = false;
   const section = sb.sections[sb.sectionIndex];
   const problem = section.problems[sb.problemIndex];
   updateSorobanHud();
@@ -585,6 +605,9 @@ function appendSorobanDigit(d) {
 function submitSorobanAnswer() {
   const token = state.sbToken;
   const sb = state.soroban;
+  if (sb.processing) return; // 連打・多重送信防止
+  sb.processing = true;
+
   const section = sb.sections[sb.sectionIndex];
   const problem = section.problems[sb.problemIndex];
   const userAnswer = parseInt(sb.answerStr || '0', 10);
@@ -599,7 +622,7 @@ function submitSorobanAnswer() {
   setTimeout(() => {
     if (token !== state.sbToken) return;
     if (sb.problemIndex >= section.count) {
-      clearInterval(sb.timerId);
+      if (sb.timerMode === 'perSection') clearInterval(sb.timerId);
       finishSorobanSection(token);
     } else {
       showSorobanProblem(token);
@@ -607,19 +630,21 @@ function submitSorobanAnswer() {
   }, 1000);
 }
 
+function sorobanSectionPassed(section, level) {
+  return (section.correct / section.count) >= level.soroban.passRate;
+}
+
 function finishSorobanSection(token) {
   if (token !== state.sbToken) return;
   const sb = state.soroban;
   const section = sb.sections[sb.sectionIndex];
   const level = LEVELS[state.level];
-  const passRate = level.soroban.passRate;
-  const sectionPassed = (section.correct / section.count) >= passRate;
 
   sb.results.push({
     label: section.label,
     correct: section.correct,
     total: section.count,
-    passed: sectionPassed,
+    passed: sorobanSectionPassed(section, level),
   });
 
   sb.sectionIndex++;
@@ -630,15 +655,40 @@ function finishSorobanSection(token) {
   }
 }
 
-function finishSorobanOverall(token) {
+// combinedモードで制限時間が来たときの処理:今の種目までの結果を記録し、
+// まだ手をつけていない残りの種目は0点として締め切る
+function finishSorobanCombinedTimeout(token) {
   if (token !== state.sbToken) return;
   const sb = state.soroban;
   const level = LEVELS[state.level];
 
+  const current = sb.sections[sb.sectionIndex];
+  sb.results.push({
+    label: current.label,
+    correct: current.correct,
+    total: current.count,
+    passed: sorobanSectionPassed(current, level),
+  });
+  for (let i = sb.sectionIndex + 1; i < sb.sections.length; i++) {
+    const s = sb.sections[i];
+    sb.results.push({ label: s.label, correct: 0, total: s.count, passed: false });
+  }
+
+  finishSorobanOverall(token);
+}
+
+function finishSorobanOverall(token) {
+  if (token !== state.sbToken) return;
+  const sb = state.soroban;
+  const level = LEVELS[state.level];
+  if (sb.timerId) clearInterval(sb.timerId);
+
   const score = sb.results.reduce((sum, r) => sum + r.correct, 0);
   const total = sb.results.reduce((sum, r) => sum + r.total, 0);
   const pct = Math.round((score / total) * 100);
-  const passed = sb.results.every(r => r.passed);
+  const passed = sb.timerMode === 'perSection'
+    ? sb.results.every(r => r.passed)
+    : (score / total) >= level.soroban.passRate;
 
   const key = `soroban_best_soroban_${state.level}_${total}`;
   const prevBest = parseInt(localStorage.getItem(key) || '0', 10);
@@ -653,9 +703,13 @@ function finishSorobanOverall(token) {
     score, total, passed,
   });
 
+  const passScoreLabel = sb.timerMode === 'perSection'
+    ? `各種目 ${Math.round(level.soroban.passRate * 100)}%以上`
+    : `合計 ${Math.round(level.soroban.passRate * 100)}%以上`;
+
   state.lastResult = {
     score, total, pct, best, isBest, passed,
-    passScoreLabel: `各種目 ${Math.round(level.soroban.passRate * 100)}%以上`,
+    passScoreLabel,
     sections: sb.results,
   };
 
