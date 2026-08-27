@@ -88,8 +88,13 @@ const SpeechEngine = (() => {
 
   // 読み上げ算の伝統的な言い回しで読み上げる
   // 「ねがいましては」→ 1口目「◯円なり」→ 直前と同じ演算が続く間は「◯円なり」
-  // → 足し算から引き算に変わった瞬間だけ「◯円引いては」、引き算から足し算に戻った瞬間だけ「◯円加えて」
+  // → 引き算に変わる時だけ「引いては」、足し算に戻る時だけ「加えて」と先に宣言し、
+  //   そこから次に宣言があるまでの数字はすべてその演算で計算する
   // → 最後は「◯円では」で締める
+  //
+  // 「引いては/加えて」は、それが かかる数字の"前"に言う。
+  // (数字の後に言うと、聞き手はその数字を直前の演算で計算してしまい、
+  //  演算が1口ずれて答えが合わなくなる)
   async function speakProblem(terms, rate, pauseMs, isCancelled) {
     window.speechSynthesis && window.speechSynthesis.cancel();
 
@@ -106,18 +111,12 @@ const SpeechEngine = (() => {
       const opChanged = i > 0 && terms[i - 1].op !== t.op;
 
       if (opChanged) {
-        // 演算が切り替わる時は、「◯円なり」で数字を確定してから、少し間を空けて「引いては/加えて」
-        // (最後の項でも、切り替わったことは必ずアナウンスする。そうしないと
-        //  聞いた数字と実際の答えが合わなくなってしまう)
-        await speakOne(`${t.value}円なり`, rate);
+        await speakOne(t.op === '-' ? '引いては' : '加えて', rate);
         if (isCancelled()) return;
         await sleep(opGapMs);
         if (isCancelled()) return;
-        await speakOne(t.op === '-' ? '引いては' : '加えて', rate);
-      } else {
-        const text = isLast ? `${t.value}円では` : `${t.value}円なり`;
-        await speakOne(text, rate);
       }
+      await speakOne(isLast ? `${t.value}円では` : `${t.value}円なり`, rate);
       if (isCancelled()) return;
       if (!isLast) await sleep(pauseMs);
     }

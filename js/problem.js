@@ -15,6 +15,10 @@ function pickDigits(digitsConfig) {
 }
 
 // terms: [{ value:number, op:'+'|'-' }], answer: number を組み立てる共通ロジック
+//
+// 引き算は「引いても その時点の合計がマイナスにならない」ときだけ混ぜる。
+// 実際の読み上げ算・見取り算では計算の途中でマイナスになることはないので、
+// value <= total を満たさない引き算は絶対に作らない(そろばんの珠が引けなくなるため)。
 function buildTermsSequence(digits, termCount, allowSubtract) {
   const terms = [];
   let total = 0;
@@ -24,8 +28,7 @@ function buildTermsSequence(digits, termCount, allowSubtract) {
     let op = '+';
     const isLast = i === termCount - 1;
 
-    // よみあげの最後の項は「◯円では」とだけ言い、演算を読み上げないため、
-    // 最後の項は必ず足し算にする(そうしないと読み上げた数字と答えが合わなくなる)
+    // 最後の項は「◯円では」で締めるので、足し算にして問題を終わらせる
     if (i > 0 && !isLast && allowSubtract && Math.random() < 0.4 && value <= total) {
       op = '-';
     }
