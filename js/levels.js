@@ -31,7 +31,8 @@ const LEVELS = {
   6: {
     name: '6級', allowSubtract: true, passScore: 7,
     flash: { digits: 2, terms: 3, flashInterval: 2000 },      // 2ケタ/3口/6秒
-    // よみあげ暗算・そろばんモードでは6級は用意していない(フラッシュ暗算のみ)
+    yomiage: { digits: 1, terms: 7, speechRate: 0.7, speechPause: 700 },  // 1ケタ/7口の加減算
+    // そろばんモードでは6級は用意していない
   },
   5: {
     name: '5級', allowSubtract: true, passScore: 7,
@@ -162,6 +163,6 @@ const LEVELS = {
 // 準級は4級と3級・3級と2級・2級と1級の間にはさまる中間級で、そろばんモードのみに存在する)
 const LEVEL_ORDER_BY_MODE = {
   flash: [7, 6, 5, 4, 3, 2, 1],
-  yomiage: [5, 4, 3, 2, 1],
+  yomiage: [6, 5, 4, 3, 2, 1],
   soroban: [5, 4, 'jun3', 3, 'jun2', 2, 'jun1', 1],
 };
