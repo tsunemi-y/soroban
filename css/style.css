@@ -218,6 +218,11 @@ html, body {
 .level-card.lv-2 { background: #c4703a; box-shadow: inset -3px -3px 0 0 #934f27, inset 3px 3px 0 0 #eca57d; }
 .level-card.lv-jun1 { background: #c8562f; box-shadow: inset -3px -3px 0 0 #953d1e, inset 3px 3px 0 0 #ef9166; }
 .level-card.lv-1 { background: #b23838; box-shadow: inset -3px -3px 0 0 #7d2323, inset 3px 3px 0 0 #e07d7d; }
+.level-card.lv-dan1 { background: #4a2f6b; box-shadow: inset -3px -3px 0 0 #331f4a, inset 3px 3px 0 0 #7451a0; }
+.level-card.lv-dan2 { background: #3d2659; box-shadow: inset -3px -3px 0 0 #29193d, inset 3px 3px 0 0 #664593; }
+.level-card.lv-dan3 { background: #302047; box-shadow: inset -3px -3px 0 0 #1e1430, inset 3px 3px 0 0 #55397e; }
+.level-card.lv-dan4 { background: #241635; box-shadow: inset -3px -3px 0 0 #150d20, inset 3px 3px 0 0 #47306b; }
+.level-card.lv-dan5 { background: #18101f; box-shadow: inset -3px -3px 0 0 #0a0712, inset 3px 3px 0 0 var(--gold); }
 
 /* ----- モード選択 ----- */
 .mode-grid { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; margin-bottom: 8px; }

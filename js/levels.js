@@ -157,12 +157,35 @@ const LEVELS = {
       ],
     },
   },
+  // 段位(初段〜5段)はフラッシュ暗算のみ、1級よりさらに上のむずかしさ
+  // (そろばん教室の実際の段位表(2ndステージ)を再現している)
+  dan1: {
+    name: '初段', allowSubtract: true, passScore: 8,
+    flash: { digits: 3, terms: 5, flashInterval: 1000 },      // 3ケタ/5口/5秒
+  },
+  dan2: {
+    name: '2段', allowSubtract: true, passScore: 8,
+    flash: { digits: 3, terms: 5, flashInterval: 800 },       // 3ケタ/5口/4秒
+  },
+  dan3: {
+    name: '3段', allowSubtract: true, passScore: 8,
+    flash: { digits: 3, terms: 10, flashInterval: 800 },      // 3ケタ/10口/8秒
+  },
+  dan4: {
+    name: '4段', allowSubtract: true, passScore: 8,
+    flash: { digits: 3, terms: 10, flashInterval: 700 },      // 3ケタ/10口/7秒
+  },
+  dan5: {
+    name: '5段', allowSubtract: true, passScore: 8,
+    flash: { digits: 3, terms: 10, flashInterval: 600 },      // 3ケタ/10口/6秒
+  },
 };
 
 // モードによって選べる級が異なる(7級・6級はフラッシュ暗算のみ、そろばんモードは5級から。
-// 準級は4級と3級・3級と2級・2級と1級の間にはさまる中間級で、そろばんモードのみに存在する)
+// 準級は4級と3級・3級と2級・2級と1級の間にはさまる中間級で、そろばんモードのみに存在する。
+// 段位(初段〜5段)は1級よりさらに上のむずかしさで、フラッシュ暗算のみに存在する)
 const LEVEL_ORDER_BY_MODE = {
-  flash: [7, 6, 5, 4, 3, 2, 1],
+  flash: [7, 6, 5, 4, 3, 2, 1, 'dan1', 'dan2', 'dan3', 'dan4', 'dan5'],
   yomiage: [6, 5, 4, 3, 2, 1],
   soroban: [5, 4, 'jun3', 3, 'jun2', 2, 'jun1', 1],
 };

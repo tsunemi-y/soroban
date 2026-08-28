@@ -149,7 +149,7 @@ const REWARD_ITEMS = [
 
 // 級の難易度を0(いちばんやさしい)〜1(いちばんむずかしい)で表す並び順
 // (モードをまたいで存在するすべての級を、やさしい順に並べたもの)
-const LEVEL_DIFFICULTY_ORDER = [7, 6, 5, 4, 'jun3', 3, 'jun2', 2, 'jun1', 1];
+const LEVEL_DIFFICULTY_ORDER = [7, 6, 5, 4, 'jun3', 3, 'jun2', 2, 'jun1', 1, 'dan1', 'dan2', 'dan3', 'dan4', 'dan5'];
 
 function levelDifficulty(levelKey) {
   const idx = LEVEL_DIFFICULTY_ORDER.indexOf(levelKey);
