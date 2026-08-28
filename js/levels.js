@@ -23,6 +23,11 @@
 // passScore: この問題数以上正解で合格(フラッシュ・よみあげ用)
 // sessionPlan: 通常の10問固定を上書きし、{blocks, shuffle}で出題構成をカスタムする
 const LEVELS = {
+  7: {
+    name: '7級', allowSubtract: true, passScore: 7,
+    flash: { digits: 1, terms: 10, flashInterval: 1000 },     // 1ケタ/10口/10秒
+    // よみあげ暗算・そろばんモードでは7級は用意していない(フラッシュ暗算のみ)
+  },
   6: {
     name: '6級', allowSubtract: true, passScore: 7,
     flash: { digits: 2, terms: 3, flashInterval: 2000 },      // 2ケタ/3口/6秒
@@ -153,10 +158,10 @@ const LEVELS = {
   },
 };
 
-// モードによって選べる級が異なる(6級はフラッシュ暗算のみ、そろばんモードは5級から。
+// モードによって選べる級が異なる(7級・6級はフラッシュ暗算のみ、そろばんモードは5級から。
 // 準級は4級と3級・3級と2級・2級と1級の間にはさまる中間級で、そろばんモードのみに存在する)
 const LEVEL_ORDER_BY_MODE = {
-  flash: [6, 5, 4, 3, 2, 1],
+  flash: [7, 6, 5, 4, 3, 2, 1],
   yomiage: [5, 4, 3, 2, 1],
   soroban: [5, 4, 'jun3', 3, 'jun2', 2, 'jun1', 1],
 };

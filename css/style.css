@@ -208,6 +208,7 @@ html, body {
 .level-card:active { transform: translateY(1px); }
 .level-card .lv-name { font-size: 1.4rem; text-shadow: 2px 2px 0 rgba(0,0,0,0.5); display:block; margin-bottom:6px;}
 .level-card .lv-desc { font-size: 0.75rem; opacity: 0.9; display:block; }
+.level-card.lv-7 { background: #4aa9a0; box-shadow: inset -3px -3px 0 0 #2d7d76, inset 3px 3px 0 0 #7fd6ce; }
 .level-card.lv-6 { background: #8a6fc4; box-shadow: inset -3px -3px 0 0 #5f4a93, inset 3px 3px 0 0 #b79cec; }
 .level-card.lv-5 { background: #4a90c4; box-shadow: inset -3px -3px 0 0 #2f6693, inset 3px 3px 0 0 #7dbcec; }
 .level-card.lv-4 { background: #5d9c3f; box-shadow: inset -3px -3px 0 0 #3f7d20, inset 3px 3px 0 0 #86d15f; }
