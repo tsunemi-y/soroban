@@ -35,22 +35,135 @@ const RARITY_META = {
 };
 
 const REWARD_ITEMS = [
+  // ----- コモン(weight 40): 序盤の木・石ツール、身近な素材 -----
   { name: '小麦', icon: '🌾', rarity: 'common', weight: 40 },
   { name: 'まるた', icon: '🪵', rarity: 'common', weight: 40 },
-  { name: '石のつるはし', icon: '⛏️', rarity: 'uncommon', weight: 25 },
+  { name: '石', icon: '🪨', rarity: 'common', weight: 40 },
+  { name: '土', icon: '🟫', rarity: 'common', weight: 40 },
+  { name: '羊毛', icon: '🧶', rarity: 'common', weight: 40 },
+  { name: '石炭', icon: '⚫', rarity: 'common', weight: 40 },
+  { name: '種', icon: '🌱', rarity: 'common', weight: 40 },
+  { name: 'リンゴ', icon: '🍎', rarity: 'common', weight: 40 },
+  { name: 'じゃがいも', icon: '🥔', rarity: 'common', weight: 40 },
+  { name: 'にんじん', icon: '🥕', rarity: 'common', weight: 40 },
+  { name: 'たいまつ', icon: '🔦', rarity: 'common', weight: 40 },
+  { name: 'ガラス', icon: '🪟', rarity: 'common', weight: 40 },
+  { name: 'はしご', icon: '🪜', rarity: 'common', weight: 40 },
+  { name: '木の剣', icon: '🗡️', rarity: 'common', weight: 40 },
+  { name: '木のつるはし', icon: '⛏️', rarity: 'common', weight: 40 },
+  { name: 'バケツ', icon: '🪣', rarity: 'common', weight: 40 },
+  { name: 'ひも', icon: '🧵', rarity: 'common', weight: 40 },
+  { name: '骨', icon: '🦴', rarity: 'common', weight: 40 },
+  { name: '羽根', icon: '🪶', rarity: 'common', weight: 40 },
+  { name: '卵', icon: '🥚', rarity: 'common', weight: 40 },
+  { name: '花たば', icon: '💐', rarity: 'common', weight: 40 },
+  { name: 'きのこ', icon: '🍄', rarity: 'common', weight: 40 },
+  { name: '粘土', icon: '🧱', rarity: 'common', weight: 40 },
+  { name: 'サボテン', icon: '🌵', rarity: 'common', weight: 40 },
+  { name: '砂糖', icon: '🍬', rarity: 'common', weight: 40 },
+  { name: '紙', icon: '📄', rarity: 'common', weight: 40 },
+  { name: '本', icon: '📕', rarity: 'common', weight: 40 },
+  { name: '釣り竿', icon: '🎣', rarity: 'common', weight: 40 },
+  { name: '石の剣', icon: '⚔️', rarity: 'common', weight: 40 },
+  { name: '石のおの', icon: '🪓', rarity: 'common', weight: 40 },
+  { name: 'かまど', icon: '🔥', rarity: 'common', weight: 40 },
+  { name: '作業台', icon: '🛠️', rarity: 'common', weight: 40 },
+  { name: 'たき火', icon: '🏕️', rarity: 'common', weight: 40 },
+  { name: 'ベル', icon: '🔔', rarity: 'common', weight: 40 },
+  { name: '看板', icon: '🪧', rarity: 'common', weight: 40 },
+  { name: '鉢植え', icon: '🪴', rarity: 'common', weight: 40 },
+  { name: 'ろうそく', icon: '🕯️', rarity: 'common', weight: 40 },
+
+  // ----- アンコモン(weight 25): 鉄ツール・防具まわりの中盤アイテム -----
+  { name: '鉄インゴット', icon: '🔩', rarity: 'uncommon', weight: 25 },
+  { name: '鉄の剣', icon: '🔪', rarity: 'uncommon', weight: 25 },
+  { name: '鉄のよろい', icon: '🥋', rarity: 'uncommon', weight: 25 },
   { name: 'パン', icon: '🍞', rarity: 'uncommon', weight: 25 },
-  { name: '鉄インゴット', icon: '🔩', rarity: 'rare', weight: 12 },
-  { name: '弓', icon: '🏹', rarity: 'rare', weight: 12 },
-  { name: '金インゴット', icon: '🟨', rarity: 'epic', weight: 5 },
+  { name: '弓', icon: '🏹', rarity: 'uncommon', weight: 25 },
+  { name: '矢', icon: '➶', rarity: 'uncommon', weight: 25 },
+  { name: '盾', icon: '🛡️', rarity: 'uncommon', weight: 25 },
+  { name: 'はさみ', icon: '✂️', rarity: 'uncommon', weight: 25 },
+  { name: 'コンパス', icon: '🧭', rarity: 'uncommon', weight: 25 },
+  { name: '時計', icon: '🕰️', rarity: 'uncommon', weight: 25 },
+  { name: '地図', icon: '🗺️', rarity: 'uncommon', weight: 25 },
+  { name: '皮の防具', icon: '🧥', rarity: 'uncommon', weight: 25 },
+  { name: 'なべ', icon: '🍲', rarity: 'uncommon', weight: 25 },
+  { name: '鉄のドア', icon: '🚪', rarity: 'uncommon', weight: 25 },
+  { name: 'レール', icon: '🛤️', rarity: 'uncommon', weight: 25 },
+  { name: 'トロッコ', icon: '🚋', rarity: 'uncommon', weight: 25 },
+  { name: '鞍', icon: '🐴', rarity: 'uncommon', weight: 25 },
+  { name: '鐘', icon: '🛎️', rarity: 'uncommon', weight: 25 },
+  { name: 'ベッド', icon: '🛏️', rarity: 'uncommon', weight: 25 },
+  { name: '醸造台', icon: '⚗️', rarity: 'uncommon', weight: 25 },
+  { name: 'ケーキ', icon: '🎂', rarity: 'uncommon', weight: 25 },
+  { name: '額縁', icon: '🖼️', rarity: 'uncommon', weight: 25 },
+  { name: 'ジュークボックス', icon: '📻', rarity: 'uncommon', weight: 25 },
+  { name: 'レコード', icon: '💿', rarity: 'uncommon', weight: 25 },
+  { name: '天秤', icon: '⚖️', rarity: 'uncommon', weight: 25 },
+  { name: 'たる', icon: '🛢️', rarity: 'uncommon', weight: 25 },
+
+  // ----- レア(weight 12): 金・レッドストーン・ラピスまわり -----
+  { name: '金インゴット', icon: '🟨', rarity: 'rare', weight: 12 },
+  { name: '金のリンゴ', icon: '🍏', rarity: 'rare', weight: 12 },
+  { name: 'レッドストーン', icon: '🔴', rarity: 'rare', weight: 12 },
+  { name: 'ラピスラズリ', icon: '🔵', rarity: 'rare', weight: 12 },
+  { name: '発射装置', icon: '📤', rarity: 'rare', weight: 12 },
+  { name: 'ホッパー', icon: '⏳', rarity: 'rare', weight: 12 },
+  { name: 'ピストン', icon: '🔧', rarity: 'rare', weight: 12 },
+  { name: 'TNT', icon: '🧨', rarity: 'rare', weight: 12 },
+  { name: '高性能な羅針盤', icon: '🧭', rarity: 'rare', weight: 12 },
+  { name: '名札', icon: '🏷️', rarity: 'rare', weight: 12 },
+  { name: '経験値びん', icon: '🧪', rarity: 'rare', weight: 12 },
+  { name: 'カメのこうら', icon: '🐢', rarity: 'rare', weight: 12 },
+  { name: '火打ち石', icon: '🪨', rarity: 'rare', weight: 12 },
+  { name: '望遠鏡', icon: '🔭', rarity: 'rare', weight: 12 },
+  { name: '蜂蜜のつぼ', icon: '🍯', rarity: 'rare', weight: 12 },
+  { name: '鐘楼の鐘', icon: '🔔', rarity: 'rare', weight: 12 },
+  { name: '象牙細工', icon: '🎨', rarity: 'rare', weight: 12 },
+  { name: '天文台の水晶', icon: '🔮', rarity: 'rare', weight: 12 },
+  { name: '砲台のかざり', icon: '🎇', rarity: 'rare', weight: 12 },
+  { name: '深海のかけら', icon: '🌊', rarity: 'rare', weight: 12 },
+
+  // ----- エピック(weight 5): ダイヤモンドとエンチャント関連 -----
+  { name: 'ダイヤモンド', icon: '💎', rarity: 'epic', weight: 5 },
+  { name: 'ダイヤモンドの剣', icon: '🗡️', rarity: 'epic', weight: 5 },
+  { name: 'ダイヤモンドのよろい', icon: '🛡️', rarity: 'epic', weight: 5 },
   { name: 'エンチャントの本', icon: '📖', rarity: 'epic', weight: 5 },
-  { name: 'ダイヤモンド', icon: '💎', rarity: 'legendary', weight: 2 },
-  { name: 'ネザースター', icon: '🌟', rarity: 'legendary', weight: 1 },
+  { name: 'トライデント', icon: '🔱', rarity: 'epic', weight: 5 },
+  { name: '金床', icon: '🔨', rarity: 'epic', weight: 5 },
+  { name: 'ネザーウォート', icon: '🌰', rarity: 'epic', weight: 5 },
+  { name: 'ブレイズロッド', icon: '🔥', rarity: 'epic', weight: 5 },
+  { name: 'エンダーパール', icon: '🟢', rarity: 'epic', weight: 5 },
+  { name: '防具立て', icon: '🗿', rarity: 'epic', weight: 5 },
+  { name: 'シュルカーボックス', icon: '📦', rarity: 'epic', weight: 5 },
+  { name: '星のかけら', icon: '✨', rarity: 'epic', weight: 5 },
+
+  // ----- レジェンド(weight 2、最上位のみ1): エンドコンテンツ級のお宝 -----
+  { name: 'ネザースター', icon: '🌟', rarity: 'legendary', weight: 2 },
+  { name: 'ビーコン', icon: '🔆', rarity: 'legendary', weight: 2 },
+  { name: 'ネザライトインゴット', icon: '🟫', rarity: 'legendary', weight: 2 },
+  { name: 'トーテムオブアンダイング', icon: '🪅', rarity: 'legendary', weight: 2 },
+  { name: 'エリトラ', icon: '🦋', rarity: 'legendary', weight: 1 },
+  { name: 'ドラゴンの卵', icon: '🐲', rarity: 'legendary', weight: 1 },
 ];
 
-// pctが高いほど(=高得点なほど)上位レアリティが出やすくなる。省略時は最高評価あつかい
-function pickRewardItem(pct) {
+// 級の難易度を0(いちばんやさしい)〜1(いちばんむずかしい)で表す並び順
+// (モードをまたいで存在するすべての級を、やさしい順に並べたもの)
+const LEVEL_DIFFICULTY_ORDER = [7, 6, 5, 4, 'jun3', 3, 'jun2', 2, 'jun1', 1];
+
+function levelDifficulty(levelKey) {
+  const idx = LEVEL_DIFFICULTY_ORDER.indexOf(levelKey);
+  if (idx === -1) return 0.5;
+  return idx / (LEVEL_DIFFICULTY_ORDER.length - 1);
+}
+
+// 正答率(pct)と級の難易度(levelKey)の両方が高いほど、上位レアリティが出やすくなる。
+// どちらも省略時は最高評価あつかい
+function pickRewardItem(pct, levelKey) {
   const p = typeof pct === 'number' ? pct : 100;
-  const boost = Math.max(0, Math.min(1, (p - 60) / 40)); // 60%以下は補正なし、100%で最大補正
+  const pctFactor = Math.max(0, Math.min(1, (p - 60) / 40)); // 60%以下は補正なし、100%で最大補正
+  const difficulty = levelKey !== undefined ? levelDifficulty(levelKey) : 1;
+  const boost = Math.max(0, Math.min(1, pctFactor * 0.5 + difficulty * 0.5));
   const tierBoost = { common: 1 - boost * 0.6, uncommon: 1, rare: 1 + boost * 1.5, epic: 1 + boost * 3, legendary: 1 + boost * 6 };
 
   const weighted = REWARD_ITEMS.map(item => ({ item, weight: item.weight * tierBoost[item.rarity] }));
@@ -846,7 +959,7 @@ function finishSorobanOverall(token) {
   };
 
   if (passed) {
-    state.pendingReward = pickRewardItem(pct);
+    state.pendingReward = pickRewardItem(pct, state.level);
     showRewardScreen();
   } else {
     showResultScreen();
@@ -878,7 +991,7 @@ function finishSession() {
   state.lastResult = { score, total, pct, best, isBest, passed, passScoreLabel: `${level.passScore}問` };
 
   if (passed) {
-    state.pendingReward = pickRewardItem(pct);
+    state.pendingReward = pickRewardItem(pct, state.level);
     showRewardScreen();
   } else {
     showResultScreen();
