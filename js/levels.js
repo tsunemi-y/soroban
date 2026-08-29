@@ -44,6 +44,7 @@ const LEVELS = {
     name: '6級', allowSubtract: true, passScore: 7,
     flash: { digits: 2, terms: 3, flashInterval: 2000 },      // 2ケタ/3口/6秒
     yomiage: { digits: 1, terms: 7, speechRate: 0.7, speechPause: 700 },  // 1ケタ/7口の加減算
+    yomiageSoroban: { digits: 3, terms: 5, speechRate: 0.75, speechPause: 750 },  // 3ケタのみ/5口の加減算
     // そろばんモードでは6級は用意していない
   },
   5: {
@@ -205,6 +206,6 @@ const LEVELS = {
 const LEVEL_ORDER_BY_MODE = {
   flash: [7, 6, 5, 4, 3, 2, 1, 'dan1', 'dan2', 'dan3', 'dan4', 'dan5'],
   yomiage: [6, 5, 4, 3, 2, 1],
-  yomiageSoroban: [5, 4, 3, 2, 1],
+  yomiageSoroban: [6, 5, 4, 3, 2, 1],
   soroban: [5, 4, 'jun3', 3, 'jun2', 2, 'jun1', 1],
 };
