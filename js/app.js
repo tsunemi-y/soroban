@@ -23,7 +23,8 @@ function showScreen(id) {
   if (target) target.classList.add('active');
 }
 
-const MODE_NAMES = { flash: 'フラッシュ暗算', yomiage: 'よみあげ暗算', soroban: 'そろばん' };
+const MODE_NAMES = { flash: 'フラッシュ暗算', yomiage: 'よみあげ暗算', yomiageSoroban: 'よみあげそろばん', soroban: 'そろばん' };
+const HUD_MODE_LABEL = { flash: 'フラッシュ', yomiage: 'よみあげ', yomiageSoroban: 'よみあげそろばん' };
 
 /* ---------- 合格ごほうび(アイテムパック) ---------- */
 const RARITY_META = {
@@ -157,14 +158,25 @@ function levelDifficulty(levelKey) {
   return idx / (LEVEL_DIFFICULTY_ORDER.length - 1);
 }
 
-// 正答率(pct)と級の難易度(levelKey)の両方が高いほど、上位レアリティが出やすくなる。
-// どちらも省略時は最高評価あつかい
-function pickRewardItem(pct, levelKey) {
+// よみあげ系(耳だけで聞き取って計算する)モードは、フラッシュよりごほうびの当たりを
+// 格段によく出す。難易度・正答率の補正(boost、0〜1で頭打ち)とは別レイヤーの掛け算で
+// 上位レアリティのウェイトを底上げするので、満点・最高難易度で補正が頭打ちになっても
+// はっきり差がつく(legendaryはmultiplierの2乗で効くので特に大きく変わる)
+const MODE_LUCK_MULTIPLIER = { flash: 1, soroban: 1, yomiage: 2.5, yomiageSoroban: 2.5 };
+
+// 正答率(pct)・級の難易度(levelKey)・モード(mode)がそれぞれ高いほど、上位レアリティが
+// 出やすくなる。すべて省略時は最高評価あつかい
+function pickRewardItem(pct, levelKey, mode) {
   const p = typeof pct === 'number' ? pct : 100;
   const pctFactor = Math.max(0, Math.min(1, (p - 60) / 40)); // 60%以下は補正なし、100%で最大補正
   const difficulty = levelKey !== undefined ? levelDifficulty(levelKey) : 1;
   const boost = Math.max(0, Math.min(1, pctFactor * 0.5 + difficulty * 0.5));
   const tierBoost = { common: 1 - boost * 0.6, uncommon: 1, rare: 1 + boost * 1.5, epic: 1 + boost * 3, legendary: 1 + boost * 6 };
+
+  const luck = MODE_LUCK_MULTIPLIER[mode] || 1;
+  tierBoost.rare *= luck;
+  tierBoost.epic *= luck ** 1.5;
+  tierBoost.legendary *= luck ** 2;
 
   const weighted = REWARD_ITEMS.map(item => ({ item, weight: item.weight * tierBoost[item.rarity] }));
   const totalWeight = weighted.reduce((sum, w) => sum + w.weight, 0);
@@ -332,7 +344,8 @@ function buildLevelGrid() {
       descHtml = sorobanLevelDesc(lv);
     } else {
       const shape = lv[state.mode];
-      const digitsLabel = Array.isArray(shape.digits) ? shape.digits.join('-') : shape.digits;
+      // 桁数の配列は最小-最大だけを表示する(連続レンジでも[3,4,5,6]のように全部つながず"3-6"にする)
+      const digitsLabel = Array.isArray(shape.digits) ? `${shape.digits[0]}-${shape.digits[shape.digits.length - 1]}` : shape.digits;
       descHtml = `${digitsLabel}桁 × ${shape.terms}口`;
     }
     card.innerHTML = `
@@ -497,7 +510,7 @@ function startSession() {
   state.count = state.problems.length;
   state.index = 0;
   state.score = 0;
-  $('#hud-level').textContent = LEVELS[state.level].name + (state.mode === 'flash' ? ' フラッシュ' : ' よみあげ');
+  $('#hud-level').textContent = LEVELS[state.level].name + ' ' + HUD_MODE_LABEL[state.mode];
   showScreen('screen-play');
   runProblem(state.sessionToken);
 }
@@ -544,9 +557,11 @@ async function runProblem(token) {
     await playFlashSequence(problem.terms, level.flash.flashInterval, token);
     flashDisplay.style.display = 'none';
   } else {
+    // よみあげ暗算・よみあげそろばんは、どちらも耳で聞いて計算する(画面には数字を出さない)
+    const shape = level[state.mode];
     yomiageDisplay.style.display = 'flex';
     $('#yomiage-status').textContent = 'よみあげちゅう…';
-    await SpeechEngine.speakProblem(problem.terms, level.yomiage.speechRate, level.yomiage.speechPause, () => token !== state.sessionToken);
+    await SpeechEngine.speakProblem(problem.terms, shape.speechRate, shape.speechPause, () => token !== state.sessionToken);
     yomiageDisplay.style.display = 'none';
   }
 
@@ -959,7 +974,7 @@ function finishSorobanOverall(token) {
   };
 
   if (passed) {
-    state.pendingReward = pickRewardItem(pct, state.level);
+    state.pendingReward = pickRewardItem(pct, state.level, state.mode);
     showRewardScreen();
   } else {
     showResultScreen();
@@ -991,7 +1006,7 @@ function finishSession() {
   state.lastResult = { score, total, pct, best, isBest, passed, passScoreLabel: `${level.passScore}問` };
 
   if (passed) {
-    state.pendingReward = pickRewardItem(pct, state.level);
+    state.pendingReward = pickRewardItem(pct, state.level, state.mode);
     showRewardScreen();
   } else {
     showResultScreen();

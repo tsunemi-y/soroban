@@ -19,9 +19,21 @@
 //                              totalDigits: わる数の桁数+商の桁数の合計
 //          passRate: 合格に必要な得点率
 //          timeLimitSec: combinedモードでの全種目共通の制限時間
-// allowSubtract: ひき算を混ぜるか(モード共通)
+// yomiageSoroban: { digits, terms, speechRate, speechPause, allowSubtract? } … よみあげそろばん用
+//          (数字を耳で聞いて、実際のそろばんで計算する。答えの入力はよみあげ暗算と同じく
+//          1問ごとにキーパッドで行う)。allowSubtractを指定すると、その形状だけ
+//          level.allowSubtractを上書きできる(5級の「加算のみ」に使用)
+// allowSubtract: ひき算を混ぜるか(モード共通のデフォルト。各モードのshapeで上書き可能)
 // passScore: この問題数以上正解で合格(フラッシュ・よみあげ用)
 // sessionPlan: 通常の10問固定を上書きし、{blocks, shuffle}で出題構成をカスタムする
+
+// digits配列を[min, min+1, ..., max]で組み立てる小さなヘルパー
+function digitRange(min, max) {
+  const arr = [];
+  for (let d = min; d <= max; d++) arr.push(d);
+  return arr;
+}
+
 const LEVELS = {
   7: {
     name: '7級', allowSubtract: true, passScore: 7,
@@ -38,6 +50,8 @@ const LEVELS = {
     name: '5級', allowSubtract: true, passScore: 7,
     flash: { digits: 2, terms: 4, flashInterval: 1750 },     // 2ケタ/4口/7秒
     yomiage: { digits: [1, 2], terms: 7, speechRate: 0.8, speechPause: 600 },
+    // よみあげそろばんの5級だけ「加算のみ」(allowSubtract: false)にする
+    yomiageSoroban: { digits: digitRange(3, 4), terms: 10, allowSubtract: false, speechRate: 0.85, speechPause: 650 },
     soroban: {
       timerMode: 'combined',
       timeLimitSec: 1800,
@@ -53,6 +67,7 @@ const LEVELS = {
     name: '4級', allowSubtract: true, passScore: 7,
     flash: { digits: 2, terms: 5, flashInterval: 1500 },     // 2ケタ/5口/7.5秒
     yomiage: { digits: 2, terms: 7, speechRate: 0.9, speechPause: 500 },
+    yomiageSoroban: { digits: digitRange(3, 5), terms: 10, speechRate: 0.95, speechPause: 550 },
     soroban: {
       timerMode: 'combined',
       timeLimitSec: 1800,
@@ -83,6 +98,7 @@ const LEVELS = {
     name: '3級', allowSubtract: true, passScore: 7,
     flash: { digits: 2, terms: 10, flashInterval: 1500 },    // 2ケタ/10口/15秒
     yomiage: { digits: 2, terms: 10, speechRate: 1.0, speechPause: 450 },
+    yomiageSoroban: { digits: digitRange(3, 6), terms: 10, speechRate: 1.05, speechPause: 480 },
     soroban: {
       timerMode: 'combined',
       timeLimitSec: 1800,
@@ -118,6 +134,7 @@ const LEVELS = {
     name: '2級', allowSubtract: true, passScore: 8,
     flash: { digits: 2, terms: 10, flashInterval: 1000 },    // 2ケタ/10口/10秒
     yomiage: { digits: [2, 3], terms: 10, speechRate: 1.1, speechPause: 350 },
+    yomiageSoroban: { digits: digitRange(4, 8), terms: 10, speechRate: 1.15, speechPause: 400 },
     soroban: {
       timerMode: 'combined',
       timeLimitSec: 1800,
@@ -146,6 +163,7 @@ const LEVELS = {
     name: '1級', allowSubtract: true, passScore: 8,
     flash: { digits: 2, terms: 10, flashInterval: 800 },     // 2ケタ/10口/8秒
     yomiage: { digits: [3, 4], terms: 10, speechRate: 1.25, speechPause: 250 },
+    yomiageSoroban: { digits: digitRange(5, 10), terms: 10, speechRate: 1.25, speechPause: 320 },
     soroban: {
       timerMode: 'combined',
       timeLimitSec: 1800,
@@ -187,5 +205,6 @@ const LEVELS = {
 const LEVEL_ORDER_BY_MODE = {
   flash: [7, 6, 5, 4, 3, 2, 1, 'dan1', 'dan2', 'dan3', 'dan4', 'dan5'],
   yomiage: [6, 5, 4, 3, 2, 1],
+  yomiageSoroban: [5, 4, 3, 2, 1],
   soroban: [5, 4, 'jun3', 3, 'jun2', 2, 'jun1', 1],
 };

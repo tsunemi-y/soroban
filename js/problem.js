@@ -46,7 +46,11 @@ function buildTermsSequence(digits, termCount, allowSubtract) {
 function generateProblem(levelKey, mode, allowSubtractOverride) {
   const level = LEVELS[levelKey];
   const shape = level[mode];
-  const allowSubtract = allowSubtractOverride !== undefined ? allowSubtractOverride : level.allowSubtract;
+  // モードの形状(shape)がallowSubtractを持っていればそちらを優先する
+  // (例: よみあげそろばんの5級だけ加算のみ、他モード・他級はlevel.allowSubtractに従う)
+  const allowSubtract = allowSubtractOverride !== undefined
+    ? allowSubtractOverride
+    : (shape.allowSubtract !== undefined ? shape.allowSubtract : level.allowSubtract);
   const result = buildTermsSequence(shape.digits, shape.terms, allowSubtract);
   return { terms: result.terms, answer: result.answer, level: levelKey };
 }
