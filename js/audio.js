@@ -30,6 +30,72 @@ const SoundFX = (() => {
     }
   }
 
+  // 周波数がなめらかに上がっていくサウンド(ガチャの「たまり」演出用)
+  function sweep(startFreq, endFreq, duration, type = 'sawtooth', gain = 0.1, delay = 0) {
+    try {
+      const audioCtx = getCtx();
+      const osc = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      osc.type = type;
+      const startAt = audioCtx.currentTime + delay;
+      osc.frequency.setValueAtTime(startFreq, startAt);
+      osc.frequency.exponentialRampToValueAtTime(endFreq, startAt + duration);
+      g.gain.value = gain;
+      osc.connect(g);
+      g.connect(audioCtx.destination);
+      osc.start(startAt);
+      g.gain.setValueAtTime(gain, startAt);
+      g.gain.exponentialRampToValueAtTime(0.001, startAt + duration);
+      osc.stop(startAt + duration);
+    } catch (e) {
+      // 音声が使えない環境は無視
+    }
+  }
+
+  // ホワイトノイズの「ドン」という開封インパクト音用のバッファ(1回だけ作って使い回す)
+  let noiseBuffer = null;
+  function getNoiseBuffer(audioCtx) {
+    if (!noiseBuffer) {
+      const size = audioCtx.sampleRate * 0.35;
+      noiseBuffer = audioCtx.createBuffer(1, size, audioCtx.sampleRate);
+      const data = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < size; i++) data[i] = Math.random() * 2 - 1;
+    }
+    return noiseBuffer;
+  }
+
+  function impact(duration, gain, cutoffFreq, delay = 0) {
+    try {
+      const audioCtx = getCtx();
+      const src = audioCtx.createBufferSource();
+      src.buffer = getNoiseBuffer(audioCtx);
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = cutoffFreq;
+      const g = audioCtx.createGain();
+      src.connect(filter);
+      filter.connect(g);
+      g.connect(audioCtx.destination);
+      const startAt = audioCtx.currentTime + delay;
+      g.gain.setValueAtTime(gain, startAt);
+      g.gain.exponentialRampToValueAtTime(0.001, startAt + duration);
+      src.start(startAt);
+      src.stop(startAt + duration);
+    } catch (e) {
+      // 音声が使えない環境は無視
+    }
+  }
+
+  // レアリティ(common〜legendary)ぶんの演出パラメータ。数字が大きいほど派手になる
+  const RARITY_TIERS = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+  const BURST_NOTES = [
+    [659],
+    [523, 784],
+    [523, 659, 784, 988],
+    [440, 554, 659, 880, 1109],
+    [392, 494, 587, 740, 988, 1245, 1568],
+  ];
+
   return {
     click() { beep(520, 0.06, 'square', 0.1); },
     correct() {
@@ -45,6 +111,19 @@ const SoundFX = (() => {
     start() {
       beep(440, 0.08, 'square', 0.12, 0);
       beep(660, 0.12, 'square', 0.12, 0.1);
+    },
+    // ごほうびパックの「たまり」演出音。レアリティが高いほど長く高く上がっていく
+    packCharge(rarity) {
+      const idx = Math.max(0, RARITY_TIERS.indexOf(rarity));
+      const t = idx / (RARITY_TIERS.length - 1);
+      const duration = 0.25 + t * 0.85;
+      sweep(180, 180 + t * 620, duration, 'sawtooth', 0.05 + t * 0.05);
+    },
+    // ごほうびパックの開封音。レアリティが高いほど和音が増えて豪華になる
+    packBurst(rarity) {
+      const idx = Math.max(0, RARITY_TIERS.indexOf(rarity));
+      impact(0.3 + idx * 0.08, 0.18 + idx * 0.04, 1400 - idx * 150);
+      BURST_NOTES[idx].forEach((freq, i) => beep(freq, 0.22, 'square', 0.15, 0.08 + i * 0.07));
     },
   };
 })();

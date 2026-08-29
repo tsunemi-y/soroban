@@ -1025,28 +1025,92 @@ function showResultScreen() {
   showScreen('screen-result');
 }
 
+const RARITY_TIER_INDEX = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4 };
+// レアリティが高いほど、たまり時間(ms)・振れ幅・パーティクル数を増やして豪華にする
+const REWARD_FX_BY_TIER = [
+  { chargeMs: 300, shake: 2, particles: 0 },
+  { chargeMs: 450, shake: 3, particles: 10 },
+  { chargeMs: 650, shake: 5, particles: 18 },
+  { chargeMs: 950, shake: 7, particles: 28 },
+  { chargeMs: 1400, shake: 10, particles: 42 },
+];
+const PARTICLE_COLORS_BY_RARITY = {
+  common: ['#e2e2e2', '#a3a3a3'],
+  uncommon: ['#7dd3ff', '#4a90c4'],
+  rare: ['#b79cff', '#6a4ac4'],
+  epic: ['#f0a3ff', '#b545c9'],
+  legendary: ['#ffe27a', '#ff8a5c', '#ffd23f'],
+};
+
 function showRewardScreen() {
   const packEl = $('#reward-pack');
   const cardEl = $('#reward-card');
-  packEl.classList.remove('opened');
+  const raysEl = $('#reward-rays');
+  const particlesEl = $('#reward-particles');
+  const flashEl = $('#reward-flash');
+  const screenEl = $('#screen-reward');
+
+  packEl.classList.remove('opened', 'charging');
+  packEl.style.removeProperty('--charge-duration');
+  packEl.style.removeProperty('--shake');
   packEl.style.display = '';
   cardEl.classList.remove('show');
   cardEl.style.display = 'none';
   cardEl.innerHTML = '';
+  raysEl.className = 'reward-rays';
+  particlesEl.innerHTML = '';
+  flashEl.classList.remove('show');
+  screenEl.classList.remove('screen-reward-shake');
   showScreen('screen-reward');
 }
 
+// パックをタップしてから、レアリティに応じた「たまり」演出をはさんで開封する
 function openRewardPack() {
   const item = state.pendingReward;
-  if (!item || $('#reward-pack').classList.contains('opened')) return;
+  const packEl = $('#reward-pack');
+  if (!item || packEl.classList.contains('opened') || packEl.classList.contains('charging')) return;
 
-  SoundFX.correct();
-  addToInventory(item.name);
+  const tierIdx = RARITY_TIER_INDEX[item.rarity];
+  const fx = REWARD_FX_BY_TIER[tierIdx];
+
+  packEl.classList.add('charging');
+  packEl.style.setProperty('--charge-duration', `${fx.chargeMs / 1000}s`);
+  packEl.style.setProperty('--shake', String(fx.shake));
+  SoundFX.packCharge(item.rarity);
+
+  setTimeout(() => revealReward(item, tierIdx, fx), fx.chargeMs);
+}
+
+// たまり演出のあと、実際にアイテムを見せる(画面フラッシュ・光の輪・パーティクル・
+// レアリティが高いほど派手な効果音と画面シェイクを重ねる)
+function revealReward(item, tierIdx, fx) {
   const packEl = $('#reward-pack');
   const cardEl = $('#reward-card');
+  const raysEl = $('#reward-rays');
+  const flashEl = $('#reward-flash');
+  const screenEl = $('#screen-reward');
   const meta = RARITY_META[item.rarity];
 
+  addToInventory(item.name);
+  SoundFX.packBurst(item.rarity);
+
+  packEl.classList.remove('charging');
   packEl.classList.add('opened');
+
+  flashEl.style.setProperty('--flash-opacity', String(0.25 + tierIdx * 0.15));
+  flashEl.classList.remove('show');
+  void flashEl.offsetWidth; // アニメーションを再生し直すための強制リフロー
+  flashEl.classList.add('show');
+
+  if (tierIdx >= 2) {
+    screenEl.classList.remove('screen-reward-shake');
+    void screenEl.offsetWidth;
+    screenEl.classList.add('screen-reward-shake');
+  }
+
+  raysEl.className = `reward-rays show rarity-${item.rarity}`;
+  spawnRewardParticles(item.rarity, fx.particles);
+
   cardEl.className = `reward-card ${meta.className} show`;
   cardEl.innerHTML = `
     <div class="reward-icon">${item.icon}</div>
@@ -1054,6 +1118,27 @@ function openRewardPack() {
     <div class="reward-rarity">${meta.label}</div>
   `;
   cardEl.style.display = 'flex';
+}
+
+function spawnRewardParticles(rarity, count) {
+  const container = $('#reward-particles');
+  container.innerHTML = '';
+  const colors = PARTICLE_COLORS_BY_RARITY[rarity];
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement('div');
+    el.className = 'particle';
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 50 + Math.random() * 70;
+    const size = 5 + Math.random() * 5;
+    el.style.setProperty('--tx', `${Math.cos(angle) * dist}px`);
+    el.style.setProperty('--ty', `${Math.sin(angle) * dist}px`);
+    el.style.setProperty('--rot', `${Math.round(Math.random() * 720 - 360)}deg`);
+    el.style.setProperty('--particle-delay', `${(Math.random() * 0.15).toFixed(2)}s`);
+    el.style.width = `${size}px`;
+    el.style.height = `${size}px`;
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    container.appendChild(el);
+  }
 }
 
 /* ---------- 初期化 ---------- */
