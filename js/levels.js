@@ -208,4 +208,6 @@ const LEVEL_ORDER_BY_MODE = {
   yomiage: [6, 5, 4, 3, 2, 1],
   yomiageSoroban: [6, 5, 4, 3, 2, 1],
   soroban: [5, 4, 'jun3', 3, 'jun2', 2, 'jun1', 1],
+  // ドライブモードは級・難易度をよみあげ暗算とまったく同じにする(LEVELS[key].yomiageを流用する)
+  drive: [6, 5, 4, 3, 2, 1],
 };

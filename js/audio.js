@@ -201,9 +201,14 @@ const SpeechEngine = (() => {
     }
   }
 
+  // ドライブモード用: 問題を読み上げたあと、こたえも声で伝える
+  async function announceAnswer(answer, rate) {
+    await speakOne(`こたえは、${answer}`, rate);
+  }
+
   function cancel() {
     if (window.speechSynthesis) window.speechSynthesis.cancel();
   }
 
-  return { isSupported, speakProblem, cancel };
+  return { isSupported, speakProblem, announceAnswer, cancel };
 })();

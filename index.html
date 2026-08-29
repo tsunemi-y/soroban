@@ -19,7 +19,7 @@
     <div class="clouds"></div>
     <div class="title-wrap">
       <h1 class="game-title"><span>そろばん</span><span class="accent">クラフト</span></h1>
-      <p class="subtitle">フラッシュ暗算 &amp; よみあげ暗算 &amp; よみあげそろばん &amp; そろばん</p>
+      <p class="subtitle">フラッシュ暗算 &amp; よみあげ暗算 &amp; よみあげそろばん &amp; そろばん &amp; ドライブモード</p>
       <button id="btn-start" class="mc-btn mc-btn-lg">▶ はじめる</button>
       <button id="btn-howto" class="mc-btn">? あそびかた</button>
       <button id="btn-history" class="mc-btn">📜 きろく</button>
@@ -37,6 +37,7 @@
         <li><b>よみあげ暗算</b>：数字を 声で 読み上げるよ。画面には数字が出ないから、耳で聞いて頭のなかで計算しよう。</li>
         <li><b>よみあげそろばん</b>：数字を 声で 読み上げるよ。よみあげ暗算とちがって、実さいの そろばんを使って計算してから、こたえを入力しよう。</li>
         <li><b>そろばん</b>：実さいの そろばんで けいさんして、こたえは紙に書いていこう。「つぎへ」で問題をすすめて、さいごまで行くか時間切れになったら、紙に書いたこたえを まとめて入力するよ。5級・4級は 見取り算・かけ算・わり算をそれぞれ10分ずつ はかるよ。3級以上は 3しゅもく まとめて30分ではかるよ。</li>
+        <li><b>ドライブモード</b>：車で移動中など、画面を見られないときのモード。数字を読み上げたあと、少し間をおいてこたえも読み上げるから、耳だけで正しいか確認できるよ。問題は「とめる」を押すまでずっと続くよ。むずかしさはよみあげ暗算とおなじだよ。</li>
         <li>級(きゅう)を えらぶと、むずかしさが変わるよ。数字が大きい級ほど やさしくて、1級がいちばん むずかしいよ。7級はフラッシュ暗算だけの、いちばんやさしい級だよ。そろばんモードには「準3級・準2級・準1級」という、ひとつ下の級とひとつ上の級のあいだの むずかしさの級もあるよ。フラッシュ暗算には1級よりもっとむずかしい「初段〜5段」もあるよ。</li>
       </ul>
       <button class="mc-btn back-btn" data-back="screen-title">もどる</button>
@@ -85,6 +86,10 @@
       <button class="mc-btn mode-btn" data-mode="soroban">
         <span class="mode-icon">🧮</span>
         <span>そろばん</span>
+      </button>
+      <button class="mc-btn mode-btn" data-mode="drive">
+        <span class="mode-icon">🚗</span>
+        <span>ドライブモード</span>
       </button>
     </div>
     <button class="mc-btn back-btn" data-back="screen-title">もどる</button>
@@ -173,6 +178,24 @@
         <div id="sb-entry-list" class="sb-entry-list"></div>
         <button id="sb-btn-grade" class="mc-btn sb-btn-grade">✔ さいてんする</button>
       </div>
+    </div>
+  </section>
+
+  <!-- ドライブモード プレイ画面(耳だけで練習。問題→こたえの順に無限に読み上げつづける) -->
+  <section id="screen-drive-play" class="screen mc-bg-night">
+    <div class="hud">
+      <div class="hud-info">
+        <span id="drive-hud-count" class="hud-item">1問目</span>
+        <span id="drive-hud-level" class="hud-item"></span>
+      </div>
+    </div>
+
+    <div class="play-stage drive-stage">
+      <div class="drive-display">
+        <div class="speaker-icon">🔊</div>
+        <p id="drive-status">よみあげちゅう…</p>
+      </div>
+      <button id="drive-btn-stop" class="mc-btn mc-btn-lg drive-stop-btn">■ とめる</button>
     </div>
   </section>
 

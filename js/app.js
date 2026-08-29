@@ -23,7 +23,7 @@ function showScreen(id) {
   if (target) target.classList.add('active');
 }
 
-const MODE_NAMES = { flash: 'フラッシュ暗算', yomiage: 'よみあげ暗算', yomiageSoroban: 'よみあげそろばん', soroban: 'そろばん' };
+const MODE_NAMES = { flash: 'フラッシュ暗算', yomiage: 'よみあげ暗算', yomiageSoroban: 'よみあげそろばん', soroban: 'そろばん', drive: 'ドライブモード' };
 const HUD_MODE_LABEL = { flash: 'フラッシュ', yomiage: 'よみあげ', yomiageSoroban: 'よみあげそろばん' };
 
 /* ---------- 合格ごほうび(アイテムパック) ---------- */
@@ -343,7 +343,8 @@ function buildLevelGrid() {
     if (state.mode === 'soroban') {
       descHtml = sorobanLevelDesc(lv);
     } else {
-      const shape = lv[state.mode];
+      // ドライブモードは級・難易度をよみあげ暗算とまったく同じにするので、表示もlv.yomiageを見る
+      const shape = state.mode === 'drive' ? lv.yomiage : lv[state.mode];
       // 桁数の配列は最小-最大だけを表示する(連続レンジでも[3,4,5,6]のように全部つながず"3-6"にする)
       const digitsLabel = Array.isArray(shape.digits) ? `${shape.digits[0]}-${shape.digits[shape.digits.length - 1]}` : shape.digits;
       descHtml = `${digitsLabel}桁 × ${shape.terms}口`;
@@ -357,6 +358,8 @@ function buildLevelGrid() {
       state.level = key;
       if (state.mode === 'soroban') {
         startSorobanSession();
+      } else if (state.mode === 'drive') {
+        startDriveSession();
       } else {
         startSession();
       }
@@ -415,6 +418,11 @@ function initNav() {
   $('#sb-btn-quit').addEventListener('click', () => {
     SoundFX.click();
     quitSorobanSession();
+  });
+
+  $('#drive-btn-stop').addEventListener('click', () => {
+    SoundFX.click();
+    quitDriveSession();
   });
 
   $('#reward-pack').addEventListener('click', openRewardPack);
@@ -626,6 +634,47 @@ function showFeedback(correct, answer) {
     </div>`;
   box.classList.add('show');
   setTimeout(() => box.classList.remove('show'), 1100);
+}
+
+/* ---------- ドライブモード ----------
+   画面を見られない状況(車の運転中など)向けに、問題→こたえの順に声だけで
+   無限に読み上げつづけるモード。採点も答え入力もなく、「とめる」を押すまで続く。
+   級・難易度はよみあげ暗算(LEVELS[key].yomiage)をそのまま流用する。
+------------------------------------------------------------ */
+function startDriveSession() {
+  state.driveToken = (state.driveToken || 0) + 1;
+  state.driveCount = 0;
+  $('#drive-hud-level').textContent = LEVELS[state.level].name;
+  showScreen('screen-drive-play');
+  runDriveLoop(state.driveToken);
+}
+
+function quitDriveSession() {
+  state.driveToken = (state.driveToken || 0) + 1;
+  SpeechEngine.cancel();
+  showScreen('screen-level');
+}
+
+async function runDriveLoop(token) {
+  const shape = LEVELS[state.level].yomiage;
+  while (token === state.driveToken) {
+    state.driveCount++;
+    $('#drive-hud-count').textContent = `${state.driveCount}問目`;
+    $('#drive-status').textContent = 'よみあげちゅう…';
+
+    const problem = generateProblem(state.level, 'yomiage');
+    await SpeechEngine.speakProblem(problem.terms, shape.speechRate, shape.speechPause, () => token !== state.driveToken);
+    if (token !== state.driveToken) return;
+
+    await sleep(1200); // こたえを考える時間
+    if (token !== state.driveToken) return;
+
+    $('#drive-status').textContent = 'こたえあわせ';
+    await SpeechEngine.announceAnswer(problem.answer, shape.speechRate);
+    if (token !== state.driveToken) return;
+
+    await sleep(1800); // つぎの問題までの間
+  }
 }
 
 /* ---------- そろばんモード ----------
