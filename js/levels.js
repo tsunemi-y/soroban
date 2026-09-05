@@ -198,6 +198,27 @@ const LEVELS = {
     name: '5段', allowSubtract: true, passScore: 8,
     flash: { digits: 3, terms: 10, flashInterval: 600 },      // 3ケタ/10口/6秒
   },
+  // 高槻選抜モード専用: わり算だけ40問、8つの区切りで桁数が段階的にむずかしくなる
+  // (級選択はなく、このモードを選ぶとこの1本の構成でそのままはじまる)
+  // ※ 制限時間は元の用紙で読み取れなかったため20分を仮設定。実際に合わせて調整してください
+  takatsuki: {
+    name: '高槻選抜',
+    soroban: {
+      timerMode: 'combined',
+      timeLimitSec: 1200,
+      passRate: 0.8,
+      sections: [
+        { kind: 'wari', label: 'わり算①', divisorDigits: 2, quotientDigits: 2, count: 5 },
+        { kind: 'wari', label: 'わり算②', divisorDigits: 2, quotientDigits: 3, count: 5 },
+        { kind: 'wari', label: 'わり算③', divisorDigits: 3, quotientDigits: 2, count: 10 },
+        { kind: 'wari', label: 'わり算④', divisorDigits: 3, quotientDigits: 3, count: 4 },
+        { kind: 'wari', label: 'わり算⑤', divisorDigits: 4, quotientDigits: 3, count: 4 },
+        { kind: 'wari', label: 'わり算⑥', divisorDigits: 4, quotientDigits: 4, count: 4 },
+        { kind: 'wari', label: 'わり算⑦', divisorDigits: 5, quotientDigits: 4, count: 4 },
+        { kind: 'wari', label: 'わり算⑧', divisorDigits: 5, quotientDigits: 5, count: 4 },
+      ],
+    },
+  },
 };
 
 // モードによって選べる級が異なる(7級・6級はフラッシュ暗算のみ、そろばんモードは5級から。

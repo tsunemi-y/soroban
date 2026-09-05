@@ -126,6 +126,14 @@ function generateWariProblem(totalDigits, decimalEnabled) {
   };
 }
 
+// わる数の桁数・商の桁数をランダムに分配せず、それぞれ直接指定してつくる整数のみのわり算
+// (高槻選抜モードのように、種目内で桁配分を細かく段階分けしたい場合に使う)
+function generateWariProblemExact(divisorDigits, quotientDigits) {
+  const divisor = randDigitsValue(divisorDigits);
+  const quotient = randDigitsValue(quotientDigits);
+  return { kind: 'wari', dividend: divisor * quotient, divisor, answer: quotient };
+}
+
 // 読み上げ用の日本語数詞に変換(大きくても6桁程度でOK)
 function numberToJapanese(num) {
   if (num === 0) return 'ゼロ';

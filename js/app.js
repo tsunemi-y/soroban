@@ -23,7 +23,7 @@ function showScreen(id) {
   if (target) target.classList.add('active');
 }
 
-const MODE_NAMES = { flash: 'フラッシュ暗算', yomiage: 'よみあげ暗算', yomiageSoroban: 'よみあげそろばん', soroban: 'そろばん', drive: 'ドライブモード' };
+const MODE_NAMES = { flash: 'フラッシュ暗算', yomiage: 'よみあげ暗算', yomiageSoroban: 'よみあげそろばん', soroban: 'そろばん', takatsuki: '高槻選抜', drive: 'ドライブモード' };
 const HUD_MODE_LABEL = { flash: 'フラッシュ', yomiage: 'よみあげ', yomiageSoroban: 'よみあげそろばん' };
 
 /* ---------- 合格ごほうび(アイテムパック) ---------- */
@@ -397,6 +397,12 @@ function initNav() {
     btn.addEventListener('click', () => {
       SoundFX.click();
       state.mode = btn.dataset.mode;
+      if (state.mode === 'takatsuki') {
+        // 高槻選抜モードは級選択がなく、この1本の構成でそのままはじまる
+        state.level = 'takatsuki';
+        startSorobanSession();
+        return;
+      }
       $('#level-mode-badge').textContent = MODE_NAMES[state.mode];
       buildLevelGrid();
       showScreen('screen-level');
@@ -405,7 +411,7 @@ function initNav() {
 
   $('#btn-retry').addEventListener('click', () => {
     SoundFX.click();
-    if (state.mode === 'soroban') startSorobanSession(); else startSession();
+    if (state.mode === 'soroban' || state.mode === 'takatsuki') startSorobanSession(); else startSession();
   });
   $('#btn-to-mode').addEventListener('click', () => { SoundFX.click(); showScreen('screen-mode'); });
   $('#btn-to-title').addEventListener('click', () => { SoundFX.click(); showScreen('screen-title'); });
@@ -694,6 +700,9 @@ function resolveSorobanSections(levelKey) {
       problems = Array.from({ length: section.count }, () => generateMitoriProblem(section.digits, section.terms));
     } else if (section.kind === 'kake') {
       problems = Array.from({ length: section.count }, () => generateKakeProblem(section.totalDigits, section.decimalEnabled));
+    } else if (section.divisorDigits !== undefined) {
+      // 桁配分をランダムな分配ではなく、わる数・商の桁数を直接指定する種目(高槻選抜モードなど)
+      problems = Array.from({ length: section.count }, () => generateWariProblemExact(section.divisorDigits, section.quotientDigits));
     } else {
       problems = Array.from({ length: section.count }, () => generateWariProblem(section.totalDigits, section.decimalEnabled));
     }
@@ -748,7 +757,8 @@ function startSorobanSession() {
 function quitSorobanSession() {
   state.sbToken = (state.sbToken || 0) + 1;
   if (state.soroban && state.soroban.timerId) clearInterval(state.soroban.timerId);
-  showScreen('screen-level');
+  // 高槻選抜モードは級選択画面を持たないので、モード選択画面に戻す
+  showScreen(state.mode === 'takatsuki' ? 'screen-mode' : 'screen-level');
 }
 
 // 種目の先頭から閲覧をはじめる。perSectionモードでは種目ごとの新しいタイマーも張る
