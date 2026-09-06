@@ -39,18 +39,48 @@ function generateTakatsukiPrintProblems() {
   return problems;
 }
 
-function renderPrintSheet() {
+// 1回の「作りなおす」で作るプリントの枚数(両面印刷で紙1枚の表・裏になる)
+const PRINT_SHEET_COUNT = 2;
+
+function buildPrintSheet(sheetIndex) {
   const problems = generateTakatsukiPrintProblems();
-  const list = $('#print-problem-list');
-  list.innerHTML = '';
-  problems.forEach((p, i) => {
-    const li = document.createElement('li');
-    li.className = 'print-problem-item';
+  const sheet = document.createElement('div');
+  sheet.className = 'print-sheet';
+
+  const problemRows = problems.map((p, i) => {
     const no = CIRCLED_NUMBERS[i] || `(${i + 1})`;
     // こたえの下線は必ず問題文の右側に来るよう、問題文(改行させない)とは別要素にする
-    li.innerHTML = `<span class="print-problem-no">${no}</span><span class="print-problem-expr">${formatSorobanNumber(p.dividend)} ÷ ${formatSorobanNumber(p.divisor)} =</span><span class="print-problem-blank"></span>`;
-    list.appendChild(li);
-  });
+    return `<li class="print-problem-item"><span class="print-problem-no">${no}</span><span class="print-problem-expr">${formatSorobanNumber(p.dividend)} ÷ ${formatSorobanNumber(p.divisor)} =</span><span class="print-problem-blank"></span></li>`;
+  }).join('');
+
+  const answerCells = problems.map((p, i) => {
+    const no = CIRCLED_NUMBERS[i] || `(${i + 1})`;
+    return `<span class="print-answer-cell">${no} ${formatSorobanNumber(p.answer)}</span>`;
+  }).join('');
+
+  sheet.innerHTML = `
+    <div class="print-sheet-header">
+      <div class="print-sheet-title">種目別選手権競技</div>
+      <div class="print-sheet-subtitle">わり暗算問題　(制限時間15分)　<span class="print-sheet-no">${sheetIndex + 1}まいめ</span></div>
+      <div class="print-sheet-meta">
+        <span>なまえ：＿＿＿＿＿＿＿＿＿＿＿＿</span>
+        <span>てんすう：　　　／１００てん</span>
+      </div>
+    </div>
+    <ol class="print-problem-list">${problemRows}</ol>
+    <div class="print-answer-key">
+      <div class="print-answer-key-title">✂ ─ ─ ─ こたえ(${sheetIndex + 1}まいめ) ─ ─ ─</div>
+      <div class="print-answer-key-list">${answerCells}</div>
+    </div>`;
+  return sheet;
+}
+
+function renderPrintSheet() {
+  const container = $('#print-sheets');
+  container.innerHTML = '';
+  for (let i = 0; i < PRINT_SHEET_COUNT; i++) {
+    container.appendChild(buildPrintSheet(i));
+  }
 }
 
 /* ---------- 合格ごほうび(アイテムパック) ---------- */
