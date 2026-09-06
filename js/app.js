@@ -26,6 +26,32 @@ function showScreen(id) {
 const MODE_NAMES = { flash: 'フラッシュ暗算', yomiage: 'よみあげ暗算', yomiageSoroban: 'よみあげそろばん', soroban: 'そろばん', takatsuki: '高槻選抜', drive: 'ドライブモード' };
 const HUD_MODE_LABEL = { flash: 'フラッシュ', yomiage: 'よみあげ', yomiageSoroban: 'よみあげそろばん' };
 
+/* ---------- 高槻選抜プリント(紙で練習用、そのつど新しい問題を作り直せる) ---------- */
+const CIRCLED_NUMBERS = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩'];
+
+function generateTakatsukiPrintProblems() {
+  const problems = [];
+  LEVELS.takatsuki.soroban.sections.forEach(section => {
+    for (let i = 0; i < section.count; i++) {
+      problems.push(generateWariProblemExact(section.divisorDigits, section.quotientDigits));
+    }
+  });
+  return problems;
+}
+
+function renderPrintSheet() {
+  const problems = generateTakatsukiPrintProblems();
+  const list = $('#print-problem-list');
+  list.innerHTML = '';
+  problems.forEach((p, i) => {
+    const li = document.createElement('li');
+    li.className = 'print-problem-item';
+    const no = CIRCLED_NUMBERS[i] || `(${i + 1})`;
+    li.innerHTML = `<span class="print-problem-no">${no}</span><span class="print-problem-expr">${formatSorobanNumber(p.dividend)} ÷ ${formatSorobanNumber(p.divisor)} = <span class="print-problem-blank"></span></span>`;
+    list.appendChild(li);
+  });
+}
+
 /* ---------- 合格ごほうび(アイテムパック) ---------- */
 const RARITY_META = {
   common: { label: 'コモン', className: 'rarity-common' },
@@ -387,6 +413,20 @@ function initNav() {
     renderRarityLegend();
     renderInventory();
     showScreen('screen-inventory');
+  });
+
+  $('#btn-takatsuki-print').addEventListener('click', () => {
+    SoundFX.click();
+    renderPrintSheet();
+    showScreen('screen-print');
+  });
+  $('#btn-print-regenerate').addEventListener('click', () => {
+    SoundFX.click();
+    renderPrintSheet();
+  });
+  $('#btn-print-go').addEventListener('click', () => {
+    SoundFX.click();
+    window.print();
   });
 
   $all('[data-back]').forEach(btn => {

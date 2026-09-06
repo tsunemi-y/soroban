@@ -229,6 +229,47 @@ html, body {
 .mode-btn { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 180px; padding: 24px 20px; }
 .mode-icon { font-size: 2.2rem; }
 
+/* ----- 高槻選抜プリント ----- */
+#btn-takatsuki-print { display: block; margin: 0 auto 14px; font-size: 0.9rem; }
+.print-panel { max-width: 620px; }
+.print-toolbar { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 18px; }
+.print-sheet {
+  background: #fff;
+  color: #111;
+  padding: 24px 28px;
+  box-shadow: inset -4px -4px 0 0 rgba(0,0,0,0.15), inset 4px 4px 0 0 rgba(0,0,0,0.05);
+}
+.print-sheet-header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #111; padding-bottom: 12px; }
+.print-sheet-title { font-size: 1.3rem; font-weight: bold; letter-spacing: 2px; }
+.print-sheet-subtitle { font-size: 1rem; margin-top: 4px; }
+.print-sheet-meta { display: flex; justify-content: space-between; margin-top: 14px; font-size: 0.95rem; flex-wrap: wrap; gap: 8px; }
+.print-problem-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr; gap: 16px; }
+.print-problem-item { display: flex; align-items: baseline; gap: 10px; font-size: 1.15rem; font-family: 'Consolas', 'DotGothic16', monospace; }
+.print-problem-no { font-weight: bold; min-width: 30px; }
+.print-problem-expr { flex: 1 1 auto; }
+.print-problem-blank { display: inline-block; min-width: 100px; border-bottom: 1.5px solid #333; margin-left: 6px; }
+
+@media print {
+  html, body { overflow: visible !important; height: auto !important; }
+  #app { height: auto !important; overflow: visible !important; }
+  body * { visibility: hidden; }
+  #screen-print, #screen-print * { visibility: visible; }
+  #screen-print {
+    position: absolute;
+    inset: auto;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    display: block !important;
+    padding: 0;
+    background: #fff !important;
+  }
+  .print-panel { box-shadow: none; max-width: 100%; padding: 0; }
+  .print-sheet { box-shadow: none; }
+  .no-print { display: none !important; }
+}
+
 /* ----- プレイ画面 ----- */
 .hud {
   width: 100%;

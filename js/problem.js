@@ -129,7 +129,9 @@ function generateWariProblem(totalDigits, decimalEnabled) {
 // わる数の桁数・商の桁数をランダムに分配せず、それぞれ直接指定してつくる整数のみのわり算
 // (高槻選抜モードのように、種目内で桁配分を細かく段階分けしたい場合に使う)
 function generateWariProblemExact(divisorDigits, quotientDigits) {
-  const divisor = randDigitsValue(divisorDigits);
+  let divisor = randDigitsValue(divisorDigits);
+  // わる数が1のときは「わる数÷1」の自明な問題になってしまうので避ける
+  while (divisorDigits === 1 && divisor === 1) divisor = randDigitsValue(divisorDigits);
   const quotient = randDigitsValue(quotientDigits);
   return { kind: 'wari', dividend: divisor * quotient, divisor, answer: quotient };
 }

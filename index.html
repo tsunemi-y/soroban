@@ -97,7 +97,31 @@
         <span>ドライブモード</span>
       </button>
     </div>
+    <button id="btn-takatsuki-print" class="mc-btn">📝 高槻選抜プリントをつくる</button>
     <button class="mc-btn back-btn" data-back="screen-title">もどる</button>
+  </section>
+
+  <!-- 高槻選抜プリント画面 -->
+  <section id="screen-print" class="screen mc-bg-stone">
+    <div class="mc-panel print-panel">
+      <h2 class="panel-title no-print">高槻選抜プリント</h2>
+      <div class="print-toolbar no-print">
+        <button id="btn-print-regenerate" class="mc-btn">🔄 もんだいを作りなおす</button>
+        <button id="btn-print-go" class="mc-btn">🖨 印刷する</button>
+        <button class="mc-btn back-btn" data-back="screen-mode">もどる</button>
+      </div>
+      <div id="print-sheet" class="print-sheet">
+        <div class="print-sheet-header">
+          <div class="print-sheet-title">種目別選手権競技</div>
+          <div class="print-sheet-subtitle">わり暗算問題　(制限時間15分)</div>
+          <div class="print-sheet-meta">
+            <span>なまえ：＿＿＿＿＿＿＿＿＿＿＿＿</span>
+            <span>てんすう：　　　／１００てん</span>
+          </div>
+        </div>
+        <ol id="print-problem-list" class="print-problem-list"></ol>
+      </div>
+    </div>
   </section>
 
   <!-- 級選択画面 -->
