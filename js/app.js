@@ -444,9 +444,9 @@ function initNav() {
   });
   $('#btn-takatsuki-mitori').addEventListener('click', () => {
     SoundFX.click();
-    state.mode = 'takatsuki';
+    state.mode = 'yomiageSoroban';
     state.level = 'takatsukiSoroban';
-    startSorobanSession();
+    startSession();
   });
 
   $all('[data-back]').forEach(btn => {
@@ -495,11 +495,13 @@ function initNav() {
 }
 
 // 出題の途中でも抜けられるように、進行中の非同期処理を止めて級選択に戻る
+const TAKATSUKI_PSEUDO_LEVELS = ['takatsukiYomiage', 'takatsukiSoroban'];
+
 function quitSession() {
   state.sessionToken++;
   SpeechEngine.cancel();
-  // 高槻選抜あんざんは級選択画面を持たないので、種目選択画面に戻す
-  showScreen(state.level === 'takatsukiYomiage' ? 'screen-takatsuki' : 'screen-level');
+  // 高槻選抜のあんざん・そろばんは級選択画面を持たないので、種目選択画面に戻す
+  showScreen(TAKATSUKI_PSEUDO_LEVELS.includes(state.level) ? 'screen-takatsuki' : 'screen-level');
 }
 
 /* ---------- キーパッド ---------- */

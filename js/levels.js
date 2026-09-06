@@ -231,21 +231,23 @@ const LEVELS = {
       shuffle: false,
     },
   },
-  // そろばん(そろばんモードエンジンを流用、見取り算のみ): 4桁から8桁まで
-  // 1桁ずつ段階的にむずかしくなる(10口固定、計10問)
+  // そろばん(よみあげそろばんエンジンを流用): 数字を読み上げ、頭の中ではなく実際の
+  // そろばんで計算してからキーパッドで入力する。4桁から8桁まで1桁ずつ段階的に
+  // むずかしくなる(10口固定、計10問。speechRate/Pauseは2級のdigitRange(4,8)と同じ値)
   takatsukiSoroban: {
     name: '高槻選抜(そろばん)',
-    soroban: {
-      timerMode: 'combined',
-      timeLimitSec: 600,
-      passRate: 0.8,
-      sections: [
-        { kind: 'mitori', label: '見取り算①', digits: 4, terms: 10, count: 2 },
-        { kind: 'mitori', label: '見取り算②', digits: 5, terms: 10, count: 2 },
-        { kind: 'mitori', label: '見取り算③', digits: 6, terms: 10, count: 2 },
-        { kind: 'mitori', label: '見取り算④', digits: 7, terms: 10, count: 2 },
-        { kind: 'mitori', label: '見取り算⑤', digits: 8, terms: 10, count: 2 },
+    allowSubtract: true,
+    passScore: 7,
+    yomiageSoroban: { speechRate: 1.15, speechPause: 400 },
+    sessionPlan: {
+      blocks: [
+        { count: 2, digits: 4, terms: 10 },
+        { count: 2, digits: 5, terms: 10 },
+        { count: 2, digits: 6, terms: 10 },
+        { count: 2, digits: 7, terms: 10 },
+        { count: 2, digits: 8, terms: 10 },
       ],
+      shuffle: false,
     },
   },
 };
