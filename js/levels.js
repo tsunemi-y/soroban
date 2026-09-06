@@ -198,11 +198,14 @@ const LEVELS = {
     name: '5段', allowSubtract: true, passScore: 8,
     flash: { digits: 3, terms: 10, flashInterval: 600 },      // 3ケタ/10口/6秒
   },
-  // 高槻選抜モード専用: 実際の「わり暗算問題」用紙(種目別選手権競技)を再現した10問構成
-  // (級選択はなく、このモードを選ぶとこの1本の構成でそのままはじまる)
-  // わる数1桁・商3桁が5問→わる数2桁・商2桁が5問、制限時間15分(用紙に明記)
+  // 高槻選抜モード専用(級選択はなく、モードを選ぶと種目選択画面が出て、
+  // えらんだ種目の構成でそのままはじまる)。実際の「種目別選手権競技」を再現し、
+  // わり算・あんざん・そろばんの3種目、それぞれ10問で段階的にむずかしくなる
+  //
+  // わり算: 実際の「わり暗算問題」用紙を再現。わる数1桁・商3桁が5問→
+  // わる数2桁・商2桁が5問、制限時間15分(用紙に明記)
   takatsuki: {
-    name: '高槻選抜',
+    name: '高槻選抜(わり算)',
     soroban: {
       timerMode: 'combined',
       timeLimitSec: 900,
@@ -210,6 +213,38 @@ const LEVELS = {
       sections: [
         { kind: 'wari', label: 'わり算①', divisorDigits: 1, quotientDigits: 3, count: 5 },
         { kind: 'wari', label: 'わり算②', divisorDigits: 2, quotientDigits: 2, count: 5 },
+      ],
+    },
+  },
+  // あんざん(よみあげ暗算エンジンを流用): 2〜3桁・7口からはじまり、
+  // 3桁・10口まで段階的にむずかしくなる(shuffleしない=出題順そのままで難化させる)
+  takatsukiYomiage: {
+    name: '高槻選抜(あんざん)',
+    allowSubtract: true,
+    passScore: 7,
+    yomiage: { speechRate: 1.05, speechPause: 480 },
+    sessionPlan: {
+      blocks: [
+        { count: 5, digits: digitRange(2, 3), terms: 7 },
+        { count: 5, digits: 3, terms: 10 },
+      ],
+      shuffle: false,
+    },
+  },
+  // そろばん(そろばんモードエンジンを流用、見取り算のみ): 4桁から8桁まで
+  // 1桁ずつ段階的にむずかしくなる(10口固定、計10問)
+  takatsukiSoroban: {
+    name: '高槻選抜(そろばん)',
+    soroban: {
+      timerMode: 'combined',
+      timeLimitSec: 600,
+      passRate: 0.8,
+      sections: [
+        { kind: 'mitori', label: '見取り算①', digits: 4, terms: 10, count: 2 },
+        { kind: 'mitori', label: '見取り算②', digits: 5, terms: 10, count: 2 },
+        { kind: 'mitori', label: '見取り算③', digits: 6, terms: 10, count: 2 },
+        { kind: 'mitori', label: '見取り算④', digits: 7, terms: 10, count: 2 },
+        { kind: 'mitori', label: '見取り算⑤', digits: 8, terms: 10, count: 2 },
       ],
     },
   },

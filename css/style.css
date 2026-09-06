@@ -244,10 +244,10 @@ html, body {
 .print-sheet-subtitle { font-size: 1rem; margin-top: 4px; }
 .print-sheet-meta { display: flex; justify-content: space-between; margin-top: 14px; font-size: 0.95rem; flex-wrap: wrap; gap: 8px; }
 .print-problem-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr; gap: 16px; }
-.print-problem-item { display: flex; align-items: baseline; gap: 10px; font-size: 1.15rem; font-family: 'Consolas', 'DotGothic16', monospace; }
-.print-problem-no { font-weight: bold; min-width: 30px; }
-.print-problem-expr { flex: 1 1 auto; }
-.print-problem-blank { display: inline-block; min-width: 100px; border-bottom: 1.5px solid #333; margin-left: 6px; }
+.print-problem-item { display: flex; align-items: baseline; flex-wrap: nowrap; gap: 10px; font-size: 1.15rem; font-family: 'Consolas', 'DotGothic16', monospace; }
+.print-problem-no { flex: 0 0 auto; font-weight: bold; min-width: 30px; }
+.print-problem-expr { flex: 0 1 auto; white-space: nowrap; }
+.print-problem-blank { flex: 1 1 auto; min-width: 60px; border-bottom: 1.5px solid #333; align-self: stretch; }
 
 @media print {
   html, body { overflow: visible !important; height: auto !important; }

@@ -41,17 +41,20 @@ function buildTermsSequence(digits, termCount, allowSubtract) {
 }
 
 // mode('flash'|'yomiage') によって、同じ級でも桁数・口数(LEVELS[levelKey][mode])が異なる
-// allowSubtractOverride を渡すと、その問題だけ level.allowSubtract の設定を上書きできる
-// (例: 3級の「加算のみ3問+加減算3問」のような構成に使う)
-function generateProblem(levelKey, mode, allowSubtractOverride) {
+// overrides({ allowSubtract, digits, terms })を渡すと、その問題だけ対応する項目を上書きできる
+// (例: 3級の「加算のみ3問+加減算3問」、高槻選抜あんざんの「問題ごとに段階的に桁数・口数を増やす」構成に使う)
+function generateProblem(levelKey, mode, overrides) {
   const level = LEVELS[levelKey];
   const shape = level[mode];
+  const ov = overrides || {};
   // モードの形状(shape)がallowSubtractを持っていればそちらを優先する
   // (例: よみあげそろばんの5級だけ加算のみ、他モード・他級はlevel.allowSubtractに従う)
-  const allowSubtract = allowSubtractOverride !== undefined
-    ? allowSubtractOverride
+  const allowSubtract = ov.allowSubtract !== undefined
+    ? ov.allowSubtract
     : (shape.allowSubtract !== undefined ? shape.allowSubtract : level.allowSubtract);
-  const result = buildTermsSequence(shape.digits, shape.terms, allowSubtract);
+  const digits = ov.digits !== undefined ? ov.digits : shape.digits;
+  const terms = ov.terms !== undefined ? ov.terms : shape.terms;
+  const result = buildTermsSequence(digits, terms, allowSubtract);
   return { terms: result.terms, answer: result.answer, level: levelKey };
 }
 

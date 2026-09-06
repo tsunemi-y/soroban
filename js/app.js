@@ -47,7 +47,8 @@ function renderPrintSheet() {
     const li = document.createElement('li');
     li.className = 'print-problem-item';
     const no = CIRCLED_NUMBERS[i] || `(${i + 1})`;
-    li.innerHTML = `<span class="print-problem-no">${no}</span><span class="print-problem-expr">${formatSorobanNumber(p.dividend)} ÷ ${formatSorobanNumber(p.divisor)} = <span class="print-problem-blank"></span></span>`;
+    // こたえの下線は必ず問題文の右側に来るよう、問題文(改行させない)とは別要素にする
+    li.innerHTML = `<span class="print-problem-no">${no}</span><span class="print-problem-expr">${formatSorobanNumber(p.dividend)} ÷ ${formatSorobanNumber(p.divisor)} =</span><span class="print-problem-blank"></span>`;
     list.appendChild(li);
   });
 }
@@ -429,18 +430,36 @@ function initNav() {
     window.print();
   });
 
+  $('#btn-takatsuki-wari').addEventListener('click', () => {
+    SoundFX.click();
+    state.mode = 'takatsuki';
+    state.level = 'takatsuki';
+    startSorobanSession();
+  });
+  $('#btn-takatsuki-yomiage').addEventListener('click', () => {
+    SoundFX.click();
+    state.mode = 'yomiage';
+    state.level = 'takatsukiYomiage';
+    startSession();
+  });
+  $('#btn-takatsuki-mitori').addEventListener('click', () => {
+    SoundFX.click();
+    state.mode = 'takatsuki';
+    state.level = 'takatsukiSoroban';
+    startSorobanSession();
+  });
+
   $all('[data-back]').forEach(btn => {
     btn.addEventListener('click', () => { SoundFX.click(); showScreen(btn.dataset.back); });
   });
 
-  $all('.mode-btn').forEach(btn => {
+  $all('#screen-mode .mode-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       SoundFX.click();
       state.mode = btn.dataset.mode;
       if (state.mode === 'takatsuki') {
-        // 高槻選抜モードは級選択がなく、この1本の構成でそのままはじまる
-        state.level = 'takatsuki';
-        startSorobanSession();
+        // 高槻選抜モードは級選択がなく、種目選択画面(わり算・あんざん・そろばん)に進む
+        showScreen('screen-takatsuki');
         return;
       }
       $('#level-mode-badge').textContent = MODE_NAMES[state.mode];
@@ -479,7 +498,8 @@ function initNav() {
 function quitSession() {
   state.sessionToken++;
   SpeechEngine.cancel();
-  showScreen('screen-level');
+  // 高槻選抜あんざんは級選択画面を持たないので、種目選択画面に戻す
+  showScreen(state.level === 'takatsukiYomiage' ? 'screen-takatsuki' : 'screen-level');
 }
 
 /* ---------- キーパッド ---------- */
@@ -547,12 +567,12 @@ function buildSessionProblems(levelKey, mode) {
   const level = LEVELS[levelKey];
   const plan = level.sessionPlan;
   if (plan) {
-    let allowSubtractFlags = [];
+    let blocksExpanded = [];
     plan.blocks.forEach(block => {
-      for (let i = 0; i < block.count; i++) allowSubtractFlags.push(block.allowSubtract);
+      for (let i = 0; i < block.count; i++) blocksExpanded.push(block);
     });
-    if (plan.shuffle) allowSubtractFlags = shuffle(allowSubtractFlags);
-    return allowSubtractFlags.map(allowSubtract => generateProblem(levelKey, mode, allowSubtract));
+    if (plan.shuffle) blocksExpanded = shuffle(blocksExpanded);
+    return blocksExpanded.map(block => generateProblem(levelKey, mode, block));
   }
   return Array.from({ length: PROBLEM_COUNT }, () => generateProblem(levelKey, mode));
 }
@@ -797,8 +817,8 @@ function startSorobanSession() {
 function quitSorobanSession() {
   state.sbToken = (state.sbToken || 0) + 1;
   if (state.soroban && state.soroban.timerId) clearInterval(state.soroban.timerId);
-  // 高槻選抜モードは級選択画面を持たないので、モード選択画面に戻す
-  showScreen(state.mode === 'takatsuki' ? 'screen-mode' : 'screen-level');
+  // 高槻選抜モードは級選択画面を持たないので、種目選択画面に戻す
+  showScreen(state.mode === 'takatsuki' ? 'screen-takatsuki' : 'screen-level');
 }
 
 // 種目の先頭から閲覧をはじめる。perSectionモードでは種目ごとの新しいタイマーも張る

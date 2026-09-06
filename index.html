@@ -37,7 +37,7 @@
         <li><b>よみあげ暗算</b>：数字を 声で 読み上げるよ。画面には数字が出ないから、耳で聞いて頭のなかで計算しよう。</li>
         <li><b>よみあげそろばん</b>：数字を 声で 読み上げるよ。よみあげ暗算とちがって、実さいの そろばんを使って計算してから、こたえを入力しよう。</li>
         <li><b>そろばん</b>：実さいの そろばんで けいさんして、こたえは紙に書いていこう。「つぎへ」で問題をすすめて、さいごまで行くか時間切れになったら、紙に書いたこたえを まとめて入力するよ。5級・4級は 見取り算・かけ算・わり算をそれぞれ10分ずつ はかるよ。3級以上は 3しゅもく まとめて30分ではかるよ。</li>
-        <li><b>高槻選抜</b>：わり算だけを10問れんぞくで とく、そろばんモードの特別バージョン。さいしょはわる数が1桁のわり算が5問、つぎにわる数が2桁のわり算が5問。せいげん時間は15分。級のせんたくはなく、いきなり はじまるよ。</li>
+        <li><b>高槻選抜</b>：級のせんたくはなく、しゅもく(わり算・あんざん・そろばん)をえらんで あそぶ とくべつなモード。どのしゅもくも10問。<b>わり算</b>はそろばんモードとおなじ紙にこたえを書くやりかたで、わる数1桁→2桁と だんだんむずかしくなるよ(せいげん時間15分)。<b>あんざん</b>はよみあげ暗算とおなじやりかたで、2〜3桁・7口→3桁・10口と だんだんむずかしくなるよ。<b>そろばん</b>は見取り算だけを、4桁から8桁まで だんだん桁を ふやしながら とくよ。</li>
         <li><b>ドライブモード</b>：車で移動中など、画面を見られないときのモード。数字を読み上げたあと、少し間をおいてこたえも読み上げるから、耳だけで正しいか確認できるよ。問題は「とめる」を押すまでずっと続くよ。むずかしさはよみあげ暗算とおなじだよ。</li>
         <li>級(きゅう)を えらぶと、むずかしさが変わるよ。数字が大きい級ほど やさしくて、1級がいちばん むずかしいよ。7級はフラッシュ暗算だけの、いちばんやさしい級だよ。そろばんモードには「準3級・準2級・準1級」という、ひとつ下の級とひとつ上の級のあいだの むずかしさの級もあるよ。フラッシュ暗算には1級よりもっとむずかしい「初段〜5段」もあるよ。</li>
       </ul>
@@ -97,8 +97,28 @@
         <span>ドライブモード</span>
       </button>
     </div>
-    <button id="btn-takatsuki-print" class="mc-btn">📝 高槻選抜プリントをつくる</button>
     <button class="mc-btn back-btn" data-back="screen-title">もどる</button>
+  </section>
+
+  <!-- 高槻選抜 種目選択画面 -->
+  <section id="screen-takatsuki" class="screen mc-bg-stone">
+    <h2 class="panel-title">高槻選抜 しゅもくを えらぼう</h2>
+    <div class="mode-grid">
+      <button id="btn-takatsuki-wari" class="mc-btn mode-btn">
+        <span class="mode-icon">➗</span>
+        <span>わり算</span>
+      </button>
+      <button id="btn-takatsuki-yomiage" class="mc-btn mode-btn">
+        <span class="mode-icon">🔊</span>
+        <span>あんざん</span>
+      </button>
+      <button id="btn-takatsuki-mitori" class="mc-btn mode-btn">
+        <span class="mode-icon">🧮</span>
+        <span>そろばん</span>
+      </button>
+    </div>
+    <button id="btn-takatsuki-print" class="mc-btn">📝 わり算プリントをつくる</button>
+    <button class="mc-btn back-btn" data-back="screen-mode">もどる</button>
   </section>
 
   <!-- 高槻選抜プリント画面 -->
@@ -108,7 +128,7 @@
       <div class="print-toolbar no-print">
         <button id="btn-print-regenerate" class="mc-btn">🔄 もんだいを作りなおす</button>
         <button id="btn-print-go" class="mc-btn">🖨 印刷する</button>
-        <button class="mc-btn back-btn" data-back="screen-mode">もどる</button>
+        <button class="mc-btn back-btn" data-back="screen-takatsuki">もどる</button>
       </div>
       <div id="print-sheet" class="print-sheet">
         <div class="print-sheet-header">
