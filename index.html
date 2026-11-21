@@ -41,7 +41,7 @@
         <li><b>高槻選抜</b>：級のせんたくはなく、しゅもく(わり算・あんざん・そろばん)をえらんで あそぶ とくべつなモード。どのしゅもくも10問。<b>わり算</b>はそろばんモードとおなじ紙にこたえを書くやりかたで、わる数1桁→2桁と だんだんむずかしくなるよ(せいげん時間15分)。<b>あんざん</b>はよみあげ暗算とおなじやりかたで、2〜3桁・7口→3桁・10口と だんだんむずかしくなるよ。<b>そろばん</b>はよみあげそろばんとおなじやりかたで、数字を声で読み上げるから 実さいの そろばんで計算してこたえを入力しよう。見取り算だけを、4桁から8桁まで だんだん桁を ふやしながら とくよ。</li>
         <li><b>ドライブモード</b>：車で移動中など、画面を見られないときのモード。数字を読み上げたあと、少し間をおいてこたえも読み上げるから、耳だけで正しいか確認できるよ。問題は「とめる」を押すまでずっと続くよ。むずかしさはよみあげ暗算とおなじだよ。</li>
         <li>級(きゅう)を えらぶと、むずかしさが変わるよ。数字が大きい級ほど やさしくて、1級がいちばん むずかしいよ。7級はフラッシュ暗算だけの、いちばんやさしい級だよ。そろばんモードには「準3級・準2級・準1級」という、ひとつ下の級とひとつ上の級のあいだの むずかしさの級もあるよ。フラッシュ暗算には1級よりもっとむずかしい「初段〜5段」もあるよ。</li>
-        <li><b>🎣 つり</b>：合格すると さかなが かかるよ！ウキをタップして さおを上げると、1ぴき つりあげられる。<b>正かい数が多いほど・むずかしい級ほど</b>、シーラカンスや リュウグウノツカイみたいな でんせつの大物が かかりやすくなるよ。つった さかなは「さかなずかん」にたまっていって、おなじ さかなでも 大きさ(cm)は 毎回ちがうから、じこさいだいサイズを ねらってみよう。</li>
+        <li><b>🎣 つり</b>：1回あそぶたびに かならず さかなが かかるよ！ウキをタップして さおを上げると(タップしなくても少しまつと自動で上がるよ)、水しぶきとともに 1ぴき つりあげられる。合格できなかったときは 小さいさかなだけ。<b>正かい数が多いほど・むずかしい級ほど</b>、シーラカンスや リュウグウノツカイみたいな でんせつの大物が かかりやすくなるよ。つった さかなは「さかなずかん」にたまっていって、おなじ さかなでも 大きさ(cm)は 毎回ちがうから、じこさいだいサイズを ねらってみよう。</li>
       </ul>
       <button class="fs-btn back-btn" data-back="screen-title">もどる</button>
     </div>
@@ -262,7 +262,7 @@
   <section id="screen-fishing" class="screen bg-deep">
     <div class="fishing-stage">
       <p id="fishing-caption" class="fishing-caption">ウキが しずんだ! タップして さおを 上げよう!</p>
-      <div class="fishing-area">
+      <div id="fishing-area" class="fishing-area">
         <div class="fishing-water"></div>
         <div id="fishing-ripples" class="fishing-ripples"></div>
         <div id="fishing-rays" class="fishing-rays"></div>
@@ -272,10 +272,11 @@
           <div class="float-line"></div>
           <div class="float-body"></div>
         </div>
+        <div id="fishing-jump" class="fishing-jump"></div>
         <div id="fish-card" class="fish-card"></div>
       </div>
       <p id="fishing-hint" class="float-label">タップして さおを 上げる</p>
-      <button id="btn-fishing-next" class="fs-btn">けっかを みる</button>
+      <button id="btn-fishing-next" class="fs-btn hidden">けっかを みる</button>
     </div>
     <div id="fishing-flash" class="fishing-flash"></div>
   </section>

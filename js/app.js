@@ -224,7 +224,7 @@ const MODE_LUCK_MULTIPLIER = { flash: 1, soroban: 1, takatsuki: 1, yomiage: 2.5,
 
 // 正答率(pct)・級の難易度(levelKey)・モード(mode)がそれぞれ高いほど、すごい魚が
 // かかりやすくなる。すべて省略時は最高評価あつかい
-function pickFish(pct, levelKey, mode) {
+function pickFish(pct, levelKey, mode, passed = true) {
   const p = typeof pct === 'number' ? pct : 100;
   const pctFactor = Math.max(0, Math.min(1, (p - 60) / 40)); // 60%以下は補正なし、100%で最大補正
   const difficulty = levelKey !== undefined ? levelDifficulty(levelKey) : 1;
@@ -236,7 +236,8 @@ function pickFish(pct, levelKey, mode) {
   tierBoost.epic *= luck ** 1.5;
   tierBoost.legendary *= luck ** 2;
 
-  const weighted = FISH_LIST.map(fish => ({ fish, weight: fish.weight * tierBoost[fish.rarity] }));
+  const pool = passed ? FISH_LIST : FISH_LIST.filter(fish => fish.rarity === 'common' || fish.rarity === 'uncommon');
+  const weighted = pool.map(fish => ({ fish, weight: fish.weight * tierBoost[fish.rarity] }));
   const totalWeight = weighted.reduce((sum, w) => sum + w.weight, 0);
   let r = Math.random() * totalWeight;
   for (const w of weighted) {
@@ -535,7 +536,7 @@ function initNav() {
     quitDriveSession();
   });
 
-  $('#fishing-float').addEventListener('click', reelInFish);
+  $('#fishing-area').addEventListener('click', reelInFish);
   $('#btn-fishing-next').addEventListener('click', () => { SoundFX.click(); showResultScreen(); });
 }
 
@@ -1139,13 +1140,15 @@ function finishSorobanOverall(token) {
     sections: sb.results,
   };
 
-  if (passed) {
-    const fish = pickFish(pct, state.level, state.mode);
-    state.pendingCatch = { fish, sizeCm: rollFishSize(fish) };
-    showFishingScreen();
-  } else {
-    showResultScreen();
-  }
+  startFishingAfterSession(pct, passed);
+}
+
+// 1回あそんだら、合否にかかわらず かならず釣りをする。
+// 正答数がよいほど大物がかかり、不合格のときは小物(ふつう・ちょっとレア)だけになる
+function startFishingAfterSession(pct, passed) {
+  const fish = pickFish(pct, state.level, state.mode, passed);
+  state.pendingCatch = { fish, sizeCm: rollFishSize(fish), passed };
+  showFishingScreen();
 }
 
 function finishSession() {
@@ -1172,13 +1175,7 @@ function finishSession() {
 
   state.lastResult = { score, total, pct, best, isBest, passed, passScoreLabel: `${level.passScore}問` };
 
-  if (passed) {
-    const fish = pickFish(pct, state.level, state.mode);
-    state.pendingCatch = { fish, sizeCm: rollFishSize(fish) };
-    showFishingScreen();
-  } else {
-    showResultScreen();
-  }
+  startFishingAfterSession(pct, passed);
 }
 
 function showResultScreen() {
@@ -1226,16 +1223,21 @@ const DROPLET_COLORS_BY_RARITY = {
   legendary: ['#fff1c2', '#ffd23f', '#ffffff'],
 };
 
-// 合格したら、ウキがしずんだ状態の釣り画面を出す(タップでさおを上げる)
+// ウキがしずんだ状態の釣り画面を出す(タップでさおを上げる。
+// タップしなくても数秒で自動的に巻きはじめ、かならず釣りあげるところまで見せる)
+const AUTO_REEL_MS = 5000;
+
 function showFishingScreen() {
   const floatEl = $('#fishing-float');
   const cardEl = $('#fish-card');
+  const jumpEl = $('#fishing-jump');
   const raysEl = $('#fishing-rays');
   const splashEl = $('#fishing-splash');
   const flashEl = $('#fishing-flash');
   const ripplesEl = $('#fishing-ripples');
   const screenEl = $('#screen-fishing');
 
+  clearTimeout(state.autoReelTimer);
   floatEl.classList.remove('done', 'reeling');
   floatEl.style.removeProperty('--charge-duration');
   floatEl.style.removeProperty('--shake');
@@ -1243,13 +1245,23 @@ function showFishingScreen() {
   cardEl.classList.remove('show');
   cardEl.style.display = 'none';
   cardEl.innerHTML = '';
+  jumpEl.className = 'fishing-jump';
+  jumpEl.textContent = '';
   raysEl.className = 'fishing-rays';
   splashEl.innerHTML = '';
   flashEl.classList.remove('show');
   screenEl.classList.remove('screen-catch-shake');
-  $('#fishing-caption').textContent = 'ウキが しずんだ! タップして さおを 上げよう!';
+  // 釣りあげるまでは「けっかを みる」を出さない(とばして釣れないまま終わらないように)
+  $('#btn-fishing-next').classList.add('hidden');
+
+  const passed = state.pendingCatch && state.pendingCatch.passed;
+  $('#fishing-caption').textContent = passed
+    ? '🎉 合格! ウキが しずんだ! タップして さおを 上げよう!'
+    : '合格ラインには とどかなかった…でも ウキが しずんだ! さおを 上げよう!';
   $('#fishing-hint').classList.remove('hidden');
   showScreen('screen-fishing');
+
+  state.autoReelTimer = setTimeout(reelInFish, AUTO_REEL_MS);
 }
 
 // さおを上げてからのファイト(やりとり)。かかった魚のレアリティに応じて長さが変わる
@@ -1257,6 +1269,8 @@ function reelInFish() {
   const catchInfo = state.pendingCatch;
   const floatEl = $('#fishing-float');
   if (!catchInfo || floatEl.classList.contains('done') || floatEl.classList.contains('reeling')) return;
+  if (!$('#screen-fishing').classList.contains('active')) return;
+  clearTimeout(state.autoReelTimer);
 
   const tierIdx = RARITY_TIER_INDEX[catchInfo.fish.rarity];
   const fx = FIGHT_FX_BY_TIER[tierIdx];
@@ -1269,27 +1283,28 @@ function reelInFish() {
   $('#fishing-hint').classList.add('hidden');
   SoundFX.reelFight(catchInfo.fish.rarity);
 
-  setTimeout(() => revealFish(catchInfo, tierIdx, fx), fx.reelMs);
+  setTimeout(() => pullFishOut(catchInfo, tierIdx, fx), fx.reelMs);
 }
 
-// 水しぶきとともに魚があがってくる。レアリティが高いほど演出が派手になる
-function revealFish(catchInfo, tierIdx, fx) {
-  const { fish, sizeCm } = catchInfo;
+// 水面から魚が「バシャッ」と飛び出してくるところを見せる
+const FISH_JUMP_MS = 1100;
+
+function pullFishOut(catchInfo, tierIdx, fx) {
+  const { fish } = catchInfo;
   const floatEl = $('#fishing-float');
-  const cardEl = $('#fish-card');
-  const raysEl = $('#fishing-rays');
+  const jumpEl = $('#fishing-jump');
   const flashEl = $('#fishing-flash');
   const screenEl = $('#screen-fishing');
-  const meta = RARITY_META[fish.rarity];
 
-  const entry = addToFishBook(fish.name, sizeCm);
-  const isNewRecord = entry.count === 1 || entry.max === sizeCm;
   SoundFX.splash(fish.rarity);
-
   floatEl.classList.remove('reeling');
   floatEl.classList.add('done');
 
-  flashEl.style.setProperty('--flash-opacity', String(0.25 + tierIdx * 0.15));
+  jumpEl.textContent = fish.icon;
+  jumpEl.className = `fishing-jump jump tier-${tierIdx}`;
+  spawnSplashDroplets(fish.rarity, fx.droplets);
+
+  flashEl.style.setProperty('--flash-opacity', String(0.2 + tierIdx * 0.15));
   flashEl.classList.remove('show');
   void flashEl.offsetWidth; // アニメーションを再生し直すための強制リフロー
   flashEl.classList.add('show');
@@ -1299,9 +1314,26 @@ function revealFish(catchInfo, tierIdx, fx) {
     void screenEl.offsetWidth;
     screenEl.classList.add('screen-catch-shake');
   }
+  $('#fishing-caption').textContent = tierIdx >= 3 ? 'つりあげるぞ…!!' : 'バシャッ!';
 
+  setTimeout(() => revealFish(catchInfo, tierIdx), FISH_JUMP_MS);
+}
+
+// 釣りあげた魚をカードで見せ、ずかんに記録する
+function revealFish(catchInfo, tierIdx) {
+  const { fish, sizeCm } = catchInfo;
+  const cardEl = $('#fish-card');
+  const jumpEl = $('#fishing-jump');
+  const raysEl = $('#fishing-rays');
+  const meta = RARITY_META[fish.rarity];
+
+  const entry = addToFishBook(fish.name, sizeCm);
+  const isNewRecord = entry.count === 1 || entry.max === sizeCm;
+  if (tierIdx >= 2) SoundFX.correct();
+
+  jumpEl.className = 'fishing-jump';
+  jumpEl.textContent = '';
   raysEl.className = `fishing-rays show rarity-${fish.rarity}`;
-  spawnSplashDroplets(fish.rarity, fx.droplets);
 
   $('#fishing-caption').textContent = tierIdx >= 4 ? '🎉 でんせつの 大物を つりあげた!!!' : '🎣 つれた!';
   cardEl.className = `fish-card ${meta.className} show`;
@@ -1313,6 +1345,7 @@ function revealFish(catchInfo, tierIdx, fx) {
     <div class="fish-note">${entry.count === 1 ? '✨ はじめて つったよ!' : (isNewRecord ? '📏 じこさいだいサイズ!' : `つった数 ${entry.count}ひき`)}</div>
   `;
   cardEl.style.display = 'flex';
+  $('#btn-fishing-next').classList.remove('hidden');
 }
 
 function spawnSplashDroplets(rarity, count) {
