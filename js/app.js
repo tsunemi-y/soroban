@@ -83,126 +83,127 @@ function renderPrintSheet() {
   }
 }
 
-/* ---------- 合格ごほうび(アイテムパック) ---------- */
+/* ---------- 釣り(合格すると1ぴき釣れる) ---------- */
+// レアリティは「どれだけ深い海の すごい魚か」をあらわす
 const RARITY_META = {
-  common: { label: 'コモン', className: 'rarity-common' },
-  uncommon: { label: 'アンコモン', className: 'rarity-uncommon' },
+  common: { label: 'ふつう', className: 'rarity-common' },
+  uncommon: { label: 'ちょっとレア', className: 'rarity-uncommon' },
   rare: { label: 'レア', className: 'rarity-rare' },
-  epic: { label: 'エピック', className: 'rarity-epic' },
-  legendary: { label: 'レジェンド', className: 'rarity-legendary' },
+  epic: { label: '超レア', className: 'rarity-epic' },
+  legendary: { label: 'でんせつ', className: 'rarity-legendary' },
 };
 
-const REWARD_ITEMS = [
-  // ----- コモン(weight 40): 序盤の木・石ツール、身近な素材 -----
-  { name: '小麦', icon: '🌾', rarity: 'common', weight: 40 },
-  { name: 'まるた', icon: '🪵', rarity: 'common', weight: 40 },
-  { name: '石', icon: '🪨', rarity: 'common', weight: 40 },
-  { name: '土', icon: '🟫', rarity: 'common', weight: 40 },
-  { name: '羊毛', icon: '🧶', rarity: 'common', weight: 40 },
-  { name: '石炭', icon: '⚫', rarity: 'common', weight: 40 },
-  { name: '種', icon: '🌱', rarity: 'common', weight: 40 },
-  { name: 'リンゴ', icon: '🍎', rarity: 'common', weight: 40 },
-  { name: 'じゃがいも', icon: '🥔', rarity: 'common', weight: 40 },
-  { name: 'にんじん', icon: '🥕', rarity: 'common', weight: 40 },
-  { name: 'たいまつ', icon: '🔦', rarity: 'common', weight: 40 },
-  { name: 'ガラス', icon: '🪟', rarity: 'common', weight: 40 },
-  { name: 'はしご', icon: '🪜', rarity: 'common', weight: 40 },
-  { name: '木の剣', icon: '🗡️', rarity: 'common', weight: 40 },
-  { name: '木のつるはし', icon: '⛏️', rarity: 'common', weight: 40 },
-  { name: 'バケツ', icon: '🪣', rarity: 'common', weight: 40 },
-  { name: 'ひも', icon: '🧵', rarity: 'common', weight: 40 },
-  { name: '骨', icon: '🦴', rarity: 'common', weight: 40 },
-  { name: '羽根', icon: '🪶', rarity: 'common', weight: 40 },
-  { name: '卵', icon: '🥚', rarity: 'common', weight: 40 },
-  { name: '花たば', icon: '💐', rarity: 'common', weight: 40 },
-  { name: 'きのこ', icon: '🍄', rarity: 'common', weight: 40 },
-  { name: '粘土', icon: '🧱', rarity: 'common', weight: 40 },
-  { name: 'サボテン', icon: '🌵', rarity: 'common', weight: 40 },
-  { name: '砂糖', icon: '🍬', rarity: 'common', weight: 40 },
-  { name: '紙', icon: '📄', rarity: 'common', weight: 40 },
-  { name: '本', icon: '📕', rarity: 'common', weight: 40 },
-  { name: '釣り竿', icon: '🎣', rarity: 'common', weight: 40 },
-  { name: '石の剣', icon: '⚔️', rarity: 'common', weight: 40 },
-  { name: '石のおの', icon: '🪓', rarity: 'common', weight: 40 },
-  { name: 'かまど', icon: '🔥', rarity: 'common', weight: 40 },
-  { name: '作業台', icon: '🛠️', rarity: 'common', weight: 40 },
-  { name: 'たき火', icon: '🏕️', rarity: 'common', weight: 40 },
-  { name: 'ベル', icon: '🔔', rarity: 'common', weight: 40 },
-  { name: '看板', icon: '🪧', rarity: 'common', weight: 40 },
-  { name: '鉢植え', icon: '🪴', rarity: 'common', weight: 40 },
-  { name: 'ろうそく', icon: '🕯️', rarity: 'common', weight: 40 },
+// cm は その魚の だいたいの大きさ。釣れるたびに ±30%くらい ゆれる
+const FISH_LIST = [
+  // ----- ふつう(weight 40): 浅いところで よく釣れるもの・ときどき ゴミ -----
+  { name: 'アジ', icon: '🐟', rarity: 'common', weight: 40, cm: 25 },
+  { name: 'イワシ', icon: '🐟', rarity: 'common', weight: 40, cm: 15 },
+  { name: 'サバ', icon: '🐟', rarity: 'common', weight: 40, cm: 35 },
+  { name: 'サンマ', icon: '🐟', rarity: 'common', weight: 40, cm: 32 },
+  { name: 'キス', icon: '🐟', rarity: 'common', weight: 40, cm: 22 },
+  { name: 'ハゼ', icon: '🐟', rarity: 'common', weight: 40, cm: 14 },
+  { name: 'メバル', icon: '🐟', rarity: 'common', weight: 40, cm: 24 },
+  { name: 'カサゴ', icon: '🐟', rarity: 'common', weight: 40, cm: 26 },
+  { name: 'ボラ', icon: '🐟', rarity: 'common', weight: 40, cm: 40 },
+  { name: 'ニシン', icon: '🐟', rarity: 'common', weight: 40, cm: 30 },
+  { name: 'ワカサギ', icon: '🐟', rarity: 'common', weight: 40, cm: 12 },
+  { name: 'フナ', icon: '🐟', rarity: 'common', weight: 40, cm: 25 },
+  { name: 'コイ', icon: '🐠', rarity: 'common', weight: 40, cm: 55 },
+  { name: 'メダカ', icon: '🐠', rarity: 'common', weight: 40, cm: 4 },
+  { name: 'ドジョウ', icon: '🐟', rarity: 'common', weight: 40, cm: 15 },
+  { name: 'オイカワ', icon: '🐟', rarity: 'common', weight: 40, cm: 13 },
+  { name: 'ウグイ', icon: '🐟', rarity: 'common', weight: 40, cm: 28 },
+  { name: 'ザリガニ', icon: '🦞', rarity: 'common', weight: 40, cm: 11 },
+  { name: 'カニ', icon: '🦀', rarity: 'common', weight: 40, cm: 13 },
+  { name: 'エビ', icon: '🦐', rarity: 'common', weight: 40, cm: 9 },
+  { name: 'ヤドカリ', icon: '🐚', rarity: 'common', weight: 40, cm: 6 },
+  { name: 'アサリ', icon: '🐚', rarity: 'common', weight: 40, cm: 4 },
+  { name: 'シジミ', icon: '🐚', rarity: 'common', weight: 40, cm: 3 },
+  { name: 'ヒトデ', icon: '⭐', rarity: 'common', weight: 40, cm: 18 },
+  { name: 'クラゲ', icon: '🪼', rarity: 'common', weight: 40, cm: 20 },
+  { name: 'ウニ', icon: '🌰', rarity: 'common', weight: 40, cm: 8 },
+  { name: 'ワカメ', icon: '🌿', rarity: 'common', weight: 40, cm: 60 },
+  { name: 'こんぶ', icon: '🌿', rarity: 'common', weight: 40, cm: 90 },
+  { name: 'ながぐつ', icon: '🥾', rarity: 'common', weight: 40, cm: 30 },
+  { name: 'あきカン', icon: '🥫', rarity: 'common', weight: 40, cm: 12 },
+  { name: 'ペットボトル', icon: '🧴', rarity: 'common', weight: 40, cm: 25 },
+  { name: 'ながれ木', icon: '🪵', rarity: 'common', weight: 40, cm: 45 },
+  { name: '石ころ', icon: '🪨', rarity: 'common', weight: 40, cm: 10 },
+  { name: 'ビニールぶくろ', icon: '🛍️', rarity: 'common', weight: 40, cm: 35 },
+  { name: 'おちていたメガネ', icon: '👓', rarity: 'common', weight: 40, cm: 14 },
+  { name: 'まいごのサンダル', icon: '🩴', rarity: 'common', weight: 40, cm: 24 },
+  { name: 'まつぼっくり', icon: '🌰', rarity: 'common', weight: 40, cm: 7 },
 
-  // ----- アンコモン(weight 25): 鉄ツール・防具まわりの中盤アイテム -----
-  { name: '鉄インゴット', icon: '🔩', rarity: 'uncommon', weight: 25 },
-  { name: '鉄の剣', icon: '🔪', rarity: 'uncommon', weight: 25 },
-  { name: '鉄のよろい', icon: '🥋', rarity: 'uncommon', weight: 25 },
-  { name: 'パン', icon: '🍞', rarity: 'uncommon', weight: 25 },
-  { name: '弓', icon: '🏹', rarity: 'uncommon', weight: 25 },
-  { name: '矢', icon: '➶', rarity: 'uncommon', weight: 25 },
-  { name: '盾', icon: '🛡️', rarity: 'uncommon', weight: 25 },
-  { name: 'はさみ', icon: '✂️', rarity: 'uncommon', weight: 25 },
-  { name: 'コンパス', icon: '🧭', rarity: 'uncommon', weight: 25 },
-  { name: '時計', icon: '🕰️', rarity: 'uncommon', weight: 25 },
-  { name: '地図', icon: '🗺️', rarity: 'uncommon', weight: 25 },
-  { name: '皮の防具', icon: '🧥', rarity: 'uncommon', weight: 25 },
-  { name: 'なべ', icon: '🍲', rarity: 'uncommon', weight: 25 },
-  { name: '鉄のドア', icon: '🚪', rarity: 'uncommon', weight: 25 },
-  { name: 'レール', icon: '🛤️', rarity: 'uncommon', weight: 25 },
-  { name: 'トロッコ', icon: '🚋', rarity: 'uncommon', weight: 25 },
-  { name: '鞍', icon: '🐴', rarity: 'uncommon', weight: 25 },
-  { name: '鐘', icon: '🛎️', rarity: 'uncommon', weight: 25 },
-  { name: 'ベッド', icon: '🛏️', rarity: 'uncommon', weight: 25 },
-  { name: '醸造台', icon: '⚗️', rarity: 'uncommon', weight: 25 },
-  { name: 'ケーキ', icon: '🎂', rarity: 'uncommon', weight: 25 },
-  { name: '額縁', icon: '🖼️', rarity: 'uncommon', weight: 25 },
-  { name: 'ジュークボックス', icon: '📻', rarity: 'uncommon', weight: 25 },
-  { name: 'レコード', icon: '💿', rarity: 'uncommon', weight: 25 },
-  { name: '天秤', icon: '⚖️', rarity: 'uncommon', weight: 25 },
-  { name: 'たる', icon: '🛢️', rarity: 'uncommon', weight: 25 },
+  // ----- ちょっとレア(weight 25): 釣れると うれしいサイズ -----
+  { name: 'マダイ', icon: '🐠', rarity: 'uncommon', weight: 25, cm: 45 },
+  { name: 'ヒラメ', icon: '🐟', rarity: 'uncommon', weight: 25, cm: 50 },
+  { name: 'カレイ', icon: '🐟', rarity: 'uncommon', weight: 25, cm: 38 },
+  { name: 'スズキ', icon: '🐟', rarity: 'uncommon', weight: 25, cm: 60 },
+  { name: 'アユ', icon: '🐟', rarity: 'uncommon', weight: 25, cm: 22 },
+  { name: 'ヤマメ', icon: '🐟', rarity: 'uncommon', weight: 25, cm: 28 },
+  { name: 'イワナ', icon: '🐟', rarity: 'uncommon', weight: 25, cm: 32 },
+  { name: 'ニジマス', icon: '🐟', rarity: 'uncommon', weight: 25, cm: 40 },
+  { name: 'ウナギ', icon: '🐟', rarity: 'uncommon', weight: 25, cm: 70 },
+  { name: 'アナゴ', icon: '🐟', rarity: 'uncommon', weight: 25, cm: 55 },
+  { name: 'タコ', icon: '🐙', rarity: 'uncommon', weight: 25, cm: 60 },
+  { name: 'イカ', icon: '🦑', rarity: 'uncommon', weight: 25, cm: 30 },
+  { name: 'ホタテ', icon: '🐚', rarity: 'uncommon', weight: 25, cm: 12 },
+  { name: 'サザエ', icon: '🐚', rarity: 'uncommon', weight: 25, cm: 9 },
+  { name: 'イセエビ', icon: '🦞', rarity: 'uncommon', weight: 25, cm: 30 },
+  { name: 'カワハギ', icon: '🐟', rarity: 'uncommon', weight: 25, cm: 25 },
+  { name: 'シマアジ', icon: '🐟', rarity: 'uncommon', weight: 25, cm: 45 },
+  { name: 'カンパチ', icon: '🐟', rarity: 'uncommon', weight: 25, cm: 70 },
+  { name: 'メジナ', icon: '🐟', rarity: 'uncommon', weight: 25, cm: 35 },
+  { name: 'キンメダイ', icon: '🐠', rarity: 'uncommon', weight: 25, cm: 40 },
+  { name: 'タチウオ', icon: '🐟', rarity: 'uncommon', weight: 25, cm: 110 },
 
-  // ----- レア(weight 12): 金・レッドストーン・ラピスまわり -----
-  { name: '金インゴット', icon: '🟨', rarity: 'rare', weight: 12 },
-  { name: '金のリンゴ', icon: '🍏', rarity: 'rare', weight: 12 },
-  { name: 'レッドストーン', icon: '🔴', rarity: 'rare', weight: 12 },
-  { name: 'ラピスラズリ', icon: '🔵', rarity: 'rare', weight: 12 },
-  { name: '発射装置', icon: '📤', rarity: 'rare', weight: 12 },
-  { name: 'ホッパー', icon: '⏳', rarity: 'rare', weight: 12 },
-  { name: 'ピストン', icon: '🔧', rarity: 'rare', weight: 12 },
-  { name: 'TNT', icon: '🧨', rarity: 'rare', weight: 12 },
-  { name: '高性能な羅針盤', icon: '🧭', rarity: 'rare', weight: 12 },
-  { name: '名札', icon: '🏷️', rarity: 'rare', weight: 12 },
-  { name: '経験値びん', icon: '🧪', rarity: 'rare', weight: 12 },
-  { name: 'カメのこうら', icon: '🐢', rarity: 'rare', weight: 12 },
-  { name: '火打ち石', icon: '🪨', rarity: 'rare', weight: 12 },
-  { name: '望遠鏡', icon: '🔭', rarity: 'rare', weight: 12 },
-  { name: '蜂蜜のつぼ', icon: '🍯', rarity: 'rare', weight: 12 },
-  { name: '鐘楼の鐘', icon: '🔔', rarity: 'rare', weight: 12 },
-  { name: '象牙細工', icon: '🎨', rarity: 'rare', weight: 12 },
-  { name: '天文台の水晶', icon: '🔮', rarity: 'rare', weight: 12 },
-  { name: '砲台のかざり', icon: '🎇', rarity: 'rare', weight: 12 },
-  { name: '深海のかけら', icon: '🌊', rarity: 'rare', weight: 12 },
+  // ----- レア(weight 12): 大物。ここから一気に ひきが強くなる -----
+  { name: 'ブリ', icon: '🐟', rarity: 'rare', weight: 12, cm: 90 },
+  { name: 'カツオ', icon: '🐟', rarity: 'rare', weight: 12, cm: 60 },
+  { name: 'サワラ', icon: '🐟', rarity: 'rare', weight: 12, cm: 80 },
+  { name: 'ヒラマサ', icon: '🐟', rarity: 'rare', weight: 12, cm: 100 },
+  { name: 'クエ', icon: '🐟', rarity: 'rare', weight: 12, cm: 95 },
+  { name: 'ノドグロ', icon: '🐠', rarity: 'rare', weight: 12, cm: 35 },
+  { name: 'シイラ', icon: '🐟', rarity: 'rare', weight: 12, cm: 120 },
+  { name: 'サケ', icon: '🐟', rarity: 'rare', weight: 12, cm: 75 },
+  { name: 'アンコウ', icon: '🐡', rarity: 'rare', weight: 12, cm: 60 },
+  { name: 'トラフグ', icon: '🐡', rarity: 'rare', weight: 12, cm: 45 },
+  { name: 'ハタハタ', icon: '🐟', rarity: 'rare', weight: 12, cm: 20 },
+  { name: 'ホッケ', icon: '🐟', rarity: 'rare', weight: 12, cm: 40 },
+  { name: 'イトウ', icon: '🐟', rarity: 'rare', weight: 12, cm: 110 },
+  { name: 'タラバガニ', icon: '🦀', rarity: 'rare', weight: 12, cm: 50 },
+  { name: 'ズワイガニ', icon: '🦀', rarity: 'rare', weight: 12, cm: 35 },
+  { name: 'ウミガメ', icon: '🐢', rarity: 'rare', weight: 12, cm: 90 },
+  { name: 'タツノオトシゴ', icon: '🐉', rarity: 'rare', weight: 12, cm: 12 },
+  { name: 'チンアナゴ', icon: '🐟', rarity: 'rare', weight: 12, cm: 35 },
 
-  // ----- エピック(weight 5): ダイヤモンドとエンチャント関連 -----
-  { name: 'ダイヤモンド', icon: '💎', rarity: 'epic', weight: 5 },
-  { name: 'ダイヤモンドの剣', icon: '🗡️', rarity: 'epic', weight: 5 },
-  { name: 'ダイヤモンドのよろい', icon: '🛡️', rarity: 'epic', weight: 5 },
-  { name: 'エンチャントの本', icon: '📖', rarity: 'epic', weight: 5 },
-  { name: 'トライデント', icon: '🔱', rarity: 'epic', weight: 5 },
-  { name: '金床', icon: '🔨', rarity: 'epic', weight: 5 },
-  { name: 'ネザーウォート', icon: '🌰', rarity: 'epic', weight: 5 },
-  { name: 'ブレイズロッド', icon: '🔥', rarity: 'epic', weight: 5 },
-  { name: 'エンダーパール', icon: '🟢', rarity: 'epic', weight: 5 },
-  { name: '防具立て', icon: '🗿', rarity: 'epic', weight: 5 },
-  { name: 'シュルカーボックス', icon: '📦', rarity: 'epic', weight: 5 },
-  { name: '星のかけら', icon: '✨', rarity: 'epic', weight: 5 },
+  // ----- 超レア(weight 5): 図鑑にのっているような すごい魚 -----
+  { name: 'クロマグロ', icon: '🐟', rarity: 'epic', weight: 5, cm: 250 },
+  { name: 'カジキ', icon: '🗡️', rarity: 'epic', weight: 5, cm: 300 },
+  { name: 'バショウカジキ', icon: '🗡️', rarity: 'epic', weight: 5, cm: 280 },
+  { name: 'マンボウ', icon: '🐟', rarity: 'epic', weight: 5, cm: 220 },
+  { name: 'イルカ', icon: '🐬', rarity: 'epic', weight: 5, cm: 230 },
+  { name: 'マンタ', icon: '🐟', rarity: 'epic', weight: 5, cm: 400 },
+  { name: 'チョウザメ', icon: '🐟', rarity: 'epic', weight: 5, cm: 200 },
+  { name: 'ピラルク', icon: '🐟', rarity: 'epic', weight: 5, cm: 250 },
+  { name: 'アロワナ', icon: '🐠', rarity: 'epic', weight: 5, cm: 90 },
+  { name: 'デンキウナギ', icon: '⚡', rarity: 'epic', weight: 5, cm: 200 },
+  { name: 'タカアシガニ', icon: '🦀', rarity: 'epic', weight: 5, cm: 300 },
+  { name: 'ダイオウグソクムシ', icon: '🦠', rarity: 'epic', weight: 5, cm: 40 },
+  { name: 'ラブカ', icon: '🦈', rarity: 'epic', weight: 5, cm: 180 },
+  { name: 'ミツクリザメ', icon: '🦈', rarity: 'epic', weight: 5, cm: 300 },
+  { name: 'デメニギス', icon: '🐠', rarity: 'epic', weight: 5, cm: 15 },
+  { name: 'チョウチンアンコウ', icon: '🏮', rarity: 'epic', weight: 5, cm: 40 },
 
-  // ----- レジェンド(weight 2、最上位のみ1): エンドコンテンツ級のお宝 -----
-  { name: 'ネザースター', icon: '🌟', rarity: 'legendary', weight: 2 },
-  { name: 'ビーコン', icon: '🔆', rarity: 'legendary', weight: 2 },
-  { name: 'ネザライトインゴット', icon: '🟫', rarity: 'legendary', weight: 2 },
-  { name: 'トーテムオブアンダイング', icon: '🪅', rarity: 'legendary', weight: 2 },
-  { name: 'エリトラ', icon: '🦋', rarity: 'legendary', weight: 1 },
-  { name: 'ドラゴンの卵', icon: '🐲', rarity: 'legendary', weight: 1 },
+  // ----- でんせつ(weight 2、最上位は1): 一生に一度の大物 -----
+  { name: 'ジンベエザメ', icon: '🦈', rarity: 'legendary', weight: 2, cm: 1000 },
+  { name: 'ホホジロザメ', icon: '🦈', rarity: 'legendary', weight: 2, cm: 550 },
+  { name: 'メガマウス', icon: '🦈', rarity: 'legendary', weight: 2, cm: 500 },
+  { name: 'シャチ', icon: '🐋', rarity: 'legendary', weight: 2, cm: 700 },
+  { name: 'マッコウクジラ', icon: '🐳', rarity: 'legendary', weight: 2, cm: 1600 },
+  { name: 'ダイオウイカ', icon: '🦑', rarity: 'legendary', weight: 2, cm: 1200 },
+  { name: 'リュウグウノツカイ', icon: '🎏', rarity: 'legendary', weight: 1, cm: 800 },
+  { name: 'シーラカンス', icon: '🐟', rarity: 'legendary', weight: 1, cm: 180 },
 ];
 
 // 級の難易度を0(いちばんやさしい)〜1(いちばんむずかしい)で表す並び順
@@ -215,15 +216,15 @@ function levelDifficulty(levelKey) {
   return idx / (LEVEL_DIFFICULTY_ORDER.length - 1);
 }
 
-// よみあげ系(耳だけで聞き取って計算する)モードは、フラッシュよりごほうびの当たりを
-// 格段によく出す。難易度・正答率の補正(boost、0〜1で頭打ち)とは別レイヤーの掛け算で
-// 上位レアリティのウェイトを底上げするので、満点・最高難易度で補正が頭打ちになっても
-// はっきり差がつく(legendaryはmultiplierの2乗で効くので特に大きく変わる)
-const MODE_LUCK_MULTIPLIER = { flash: 1, soroban: 1, yomiage: 2.5, yomiageSoroban: 2.5 };
+// よみあげ系(耳だけで聞き取って計算する)モードは、フラッシュより大物がかかりやすい。
+// 難易度・正答率の補正(boost、0〜1で頭打ち)とは別レイヤーの掛け算で上位レアリティの
+// ウェイトを底上げするので、満点・最高難易度で補正が頭打ちになってもはっきり差がつく
+// (legendaryはmultiplierの2乗で効くので特に大きく変わる)
+const MODE_LUCK_MULTIPLIER = { flash: 1, soroban: 1, takatsuki: 1, yomiage: 2.5, yomiageSoroban: 2.5 };
 
-// 正答率(pct)・級の難易度(levelKey)・モード(mode)がそれぞれ高いほど、上位レアリティが
-// 出やすくなる。すべて省略時は最高評価あつかい
-function pickRewardItem(pct, levelKey, mode) {
+// 正答率(pct)・級の難易度(levelKey)・モード(mode)がそれぞれ高いほど、すごい魚が
+// かかりやすくなる。すべて省略時は最高評価あつかい
+function pickFish(pct, levelKey, mode) {
   const p = typeof pct === 'number' ? pct : 100;
   const pctFactor = Math.max(0, Math.min(1, (p - 60) / 40)); // 60%以下は補正なし、100%で最大補正
   const difficulty = levelKey !== undefined ? levelDifficulty(levelKey) : 1;
@@ -235,31 +236,42 @@ function pickRewardItem(pct, levelKey, mode) {
   tierBoost.epic *= luck ** 1.5;
   tierBoost.legendary *= luck ** 2;
 
-  const weighted = REWARD_ITEMS.map(item => ({ item, weight: item.weight * tierBoost[item.rarity] }));
+  const weighted = FISH_LIST.map(fish => ({ fish, weight: fish.weight * tierBoost[fish.rarity] }));
   const totalWeight = weighted.reduce((sum, w) => sum + w.weight, 0);
   let r = Math.random() * totalWeight;
   for (const w of weighted) {
-    if (r < w.weight) return w.item;
+    if (r < w.weight) return w.fish;
     r -= w.weight;
   }
-  return weighted[weighted.length - 1].item;
+  return weighted[weighted.length - 1].fish;
 }
 
-/* ---------- 取得したアイテム(localStorage) ---------- */
-const INVENTORY_KEY = 'soroban_inventory';
+// 釣れた1ぴきの大きさ(cm)。同じ魚でも釣るたびに変わるので、自己べスト更新がたのしめる
+function rollFishSize(fish) {
+  const ratio = 0.7 + Math.random() * 0.6;
+  return Math.max(1, Math.round(fish.cm * ratio));
+}
 
-function loadInventory() {
+/* ---------- さかなずかん(localStorage) ---------- */
+const FISHBOOK_KEY = 'soroban_fishbook';
+
+function loadFishBook() {
   try {
-    return JSON.parse(localStorage.getItem(INVENTORY_KEY) || '{}');
+    return JSON.parse(localStorage.getItem(FISHBOOK_KEY) || '{}');
   } catch (e) {
     return {};
   }
 }
 
-function addToInventory(itemName) {
-  const inventory = loadInventory();
-  inventory[itemName] = (inventory[itemName] || 0) + 1;
-  localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory));
+// 釣った魚を記録する。{ count: 釣った数, max: いちばん大きかったcm }
+function addToFishBook(fishName, sizeCm) {
+  const book = loadFishBook();
+  const entry = book[fishName] || { count: 0, max: 0 };
+  entry.count += 1;
+  entry.max = Math.max(entry.max, sizeCm);
+  book[fishName] = entry;
+  localStorage.setItem(FISHBOOK_KEY, JSON.stringify(book));
+  return entry;
 }
 
 function renderRarityLegend() {
@@ -269,26 +281,29 @@ function renderRarityLegend() {
   `).join('');
 }
 
-function renderInventory() {
-  const list = $('#inventory-list');
-  const inventory = loadInventory();
-  list.innerHTML = REWARD_ITEMS.map(item => {
-    const count = inventory[item.name] || 0;
-    const meta = RARITY_META[item.rarity];
-    if (count === 0) {
+function renderFishBook() {
+  const list = $('#fishbook-list');
+  const book = loadFishBook();
+  const caught = FISH_LIST.filter(fish => book[fish.name]).length;
+  $('#fishbook-progress').textContent = `${caught} / ${FISH_LIST.length} しゅるい ゲット！`;
+
+  list.innerHTML = FISH_LIST.map(fish => {
+    const entry = book[fish.name];
+    const meta = RARITY_META[fish.rarity];
+    if (!entry) {
       return `
-        <div class="inv-card inv-unknown">
-          <div class="inv-icon">？</div>
-          <div class="inv-name">？？？</div>
-          <div class="inv-rarity">未発見</div>
+        <div class="fish-slot unknown">
+          <div class="fish-slot-icon">？</div>
+          <div class="fish-slot-name">？？？</div>
+          <div class="fish-slot-size">みはっけん</div>
         </div>`;
     }
     return `
-      <div class="inv-card ${meta.className}">
-        <div class="inv-icon">${item.icon}</div>
-        <div class="inv-name">${item.name}</div>
-        <div class="inv-rarity">${meta.label}</div>
-        <div class="inv-count">×${count}</div>
+      <div class="fish-slot ${meta.className}">
+        <div class="fish-slot-icon">${fish.icon}</div>
+        <div class="fish-slot-name">${fish.name}</div>
+        <div class="fish-slot-size">さいだい ${entry.max}cm</div>
+        <div class="fish-slot-count">×${entry.count}</div>
       </div>`;
   }).join('');
 }
@@ -439,11 +454,11 @@ function initNav() {
     SoundFX.click();
     downloadHistoryCSV();
   });
-  $('#btn-inventory').addEventListener('click', () => {
+  $('#btn-fishbook').addEventListener('click', () => {
     SoundFX.click();
     renderRarityLegend();
-    renderInventory();
-    showScreen('screen-inventory');
+    renderFishBook();
+    showScreen('screen-fishbook');
   });
 
   $('#btn-takatsuki-print').addEventListener('click', () => {
@@ -520,8 +535,8 @@ function initNav() {
     quitDriveSession();
   });
 
-  $('#reward-pack').addEventListener('click', openRewardPack);
-  $('#btn-reward-next').addEventListener('click', () => { SoundFX.click(); showResultScreen(); });
+  $('#fishing-float').addEventListener('click', reelInFish);
+  $('#btn-fishing-next').addEventListener('click', () => { SoundFX.click(); showResultScreen(); });
 }
 
 // 出題の途中でも抜けられるように、進行中の非同期処理を止めて級選択に戻る
@@ -1125,8 +1140,9 @@ function finishSorobanOverall(token) {
   };
 
   if (passed) {
-    state.pendingReward = pickRewardItem(pct, state.level, state.mode);
-    showRewardScreen();
+    const fish = pickFish(pct, state.level, state.mode);
+    state.pendingCatch = { fish, sizeCm: rollFishSize(fish) };
+    showFishingScreen();
   } else {
     showResultScreen();
   }
@@ -1157,8 +1173,9 @@ function finishSession() {
   state.lastResult = { score, total, pct, best, isBest, passed, passScoreLabel: `${level.passScore}問` };
 
   if (passed) {
-    state.pendingReward = pickRewardItem(pct, state.level, state.mode);
-    showRewardScreen();
+    const fish = pickFish(pct, state.level, state.mode);
+    state.pendingCatch = { fish, sizeCm: rollFishSize(fish) };
+    showFishingScreen();
   } else {
     showResultScreen();
   }
@@ -1192,76 +1209,85 @@ function showResultScreen() {
 }
 
 const RARITY_TIER_INDEX = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4 };
-// レアリティが高いほど、たまり時間(ms)・振れ幅・パーティクル数を増やして豪華にする
-const REWARD_FX_BY_TIER = [
-  { chargeMs: 300, shake: 2, particles: 0 },
-  { chargeMs: 450, shake: 3, particles: 10 },
-  { chargeMs: 650, shake: 5, particles: 18 },
-  { chargeMs: 950, shake: 7, particles: 28 },
-  { chargeMs: 1400, shake: 10, particles: 42 },
+// すごい魚ほど、ひきが強い(リール時間が長い・さおが大きくしなる・水しぶきが増える)
+const FIGHT_FX_BY_TIER = [
+  { reelMs: 400, shake: 2, droplets: 6, ripple: 2.2, caption: 'なにか かかった! さおを 上げろ!' },
+  { reelMs: 600, shake: 3, droplets: 12, ripple: 1.8, caption: 'けっこう ひくぞ! まけるな!' },
+  { reelMs: 900, shake: 5, droplets: 20, ripple: 1.4, caption: 'ぐいぐい ひく! 大物の よかん…!' },
+  { reelMs: 1300, shake: 7, droplets: 30, ripple: 1.0, caption: 'すごい ちから! さおが しなる!!' },
+  { reelMs: 1800, shake: 10, droplets: 46, ripple: 0.7, caption: 'うごかない…!? とんでもない やつだ!!!' },
 ];
-const PARTICLE_COLORS_BY_RARITY = {
-  common: ['#e2e2e2', '#a3a3a3'],
-  uncommon: ['#7dd3ff', '#4a90c4'],
-  rare: ['#b79cff', '#6a4ac4'],
-  epic: ['#f0a3ff', '#b545c9'],
-  legendary: ['#ffe27a', '#ff8a5c', '#ffd23f'],
+// 水しぶきの色(レアリティが上がるほど きらきらした色がまざる)
+const DROPLET_COLORS_BY_RARITY = {
+  common: ['#dff3ff', '#a9d6ee'],
+  uncommon: ['#d6f2ff', '#5fc2ea'],
+  rare: ['#dbe6ff', '#6f97ee'],
+  epic: ['#ecdcff', '#a77ee8'],
+  legendary: ['#fff1c2', '#ffd23f', '#ffffff'],
 };
 
-function showRewardScreen() {
-  const packEl = $('#reward-pack');
-  const cardEl = $('#reward-card');
-  const raysEl = $('#reward-rays');
-  const particlesEl = $('#reward-particles');
-  const flashEl = $('#reward-flash');
-  const screenEl = $('#screen-reward');
+// 合格したら、ウキがしずんだ状態の釣り画面を出す(タップでさおを上げる)
+function showFishingScreen() {
+  const floatEl = $('#fishing-float');
+  const cardEl = $('#fish-card');
+  const raysEl = $('#fishing-rays');
+  const splashEl = $('#fishing-splash');
+  const flashEl = $('#fishing-flash');
+  const ripplesEl = $('#fishing-ripples');
+  const screenEl = $('#screen-fishing');
 
-  packEl.classList.remove('opened', 'charging');
-  packEl.style.removeProperty('--charge-duration');
-  packEl.style.removeProperty('--shake');
-  packEl.style.display = '';
+  floatEl.classList.remove('done', 'reeling');
+  floatEl.style.removeProperty('--charge-duration');
+  floatEl.style.removeProperty('--shake');
+  ripplesEl.style.setProperty('--ripple-speed', '2.2s');
   cardEl.classList.remove('show');
   cardEl.style.display = 'none';
   cardEl.innerHTML = '';
-  raysEl.className = 'reward-rays';
-  particlesEl.innerHTML = '';
+  raysEl.className = 'fishing-rays';
+  splashEl.innerHTML = '';
   flashEl.classList.remove('show');
-  screenEl.classList.remove('screen-reward-shake');
-  showScreen('screen-reward');
+  screenEl.classList.remove('screen-catch-shake');
+  $('#fishing-caption').textContent = 'ウキが しずんだ! タップして さおを 上げよう!';
+  $('#fishing-hint').classList.remove('hidden');
+  showScreen('screen-fishing');
 }
 
-// パックをタップしてから、レアリティに応じた「たまり」演出をはさんで開封する
-function openRewardPack() {
-  const item = state.pendingReward;
-  const packEl = $('#reward-pack');
-  if (!item || packEl.classList.contains('opened') || packEl.classList.contains('charging')) return;
+// さおを上げてからのファイト(やりとり)。かかった魚のレアリティに応じて長さが変わる
+function reelInFish() {
+  const catchInfo = state.pendingCatch;
+  const floatEl = $('#fishing-float');
+  if (!catchInfo || floatEl.classList.contains('done') || floatEl.classList.contains('reeling')) return;
 
-  const tierIdx = RARITY_TIER_INDEX[item.rarity];
-  const fx = REWARD_FX_BY_TIER[tierIdx];
+  const tierIdx = RARITY_TIER_INDEX[catchInfo.fish.rarity];
+  const fx = FIGHT_FX_BY_TIER[tierIdx];
 
-  packEl.classList.add('charging');
-  packEl.style.setProperty('--charge-duration', `${fx.chargeMs / 1000}s`);
-  packEl.style.setProperty('--shake', String(fx.shake));
-  SoundFX.packCharge(item.rarity);
+  floatEl.classList.add('reeling');
+  floatEl.style.setProperty('--charge-duration', `${fx.reelMs / 1000}s`);
+  floatEl.style.setProperty('--shake', String(fx.shake));
+  $('#fishing-ripples').style.setProperty('--ripple-speed', `${fx.ripple}s`);
+  $('#fishing-caption').textContent = fx.caption;
+  $('#fishing-hint').classList.add('hidden');
+  SoundFX.reelFight(catchInfo.fish.rarity);
 
-  setTimeout(() => revealReward(item, tierIdx, fx), fx.chargeMs);
+  setTimeout(() => revealFish(catchInfo, tierIdx, fx), fx.reelMs);
 }
 
-// たまり演出のあと、実際にアイテムを見せる(画面フラッシュ・光の輪・パーティクル・
-// レアリティが高いほど派手な効果音と画面シェイクを重ねる)
-function revealReward(item, tierIdx, fx) {
-  const packEl = $('#reward-pack');
-  const cardEl = $('#reward-card');
-  const raysEl = $('#reward-rays');
-  const flashEl = $('#reward-flash');
-  const screenEl = $('#screen-reward');
-  const meta = RARITY_META[item.rarity];
+// 水しぶきとともに魚があがってくる。レアリティが高いほど演出が派手になる
+function revealFish(catchInfo, tierIdx, fx) {
+  const { fish, sizeCm } = catchInfo;
+  const floatEl = $('#fishing-float');
+  const cardEl = $('#fish-card');
+  const raysEl = $('#fishing-rays');
+  const flashEl = $('#fishing-flash');
+  const screenEl = $('#screen-fishing');
+  const meta = RARITY_META[fish.rarity];
 
-  addToInventory(item.name);
-  SoundFX.packBurst(item.rarity);
+  const entry = addToFishBook(fish.name, sizeCm);
+  const isNewRecord = entry.count === 1 || entry.max === sizeCm;
+  SoundFX.splash(fish.rarity);
 
-  packEl.classList.remove('charging');
-  packEl.classList.add('opened');
+  floatEl.classList.remove('reeling');
+  floatEl.classList.add('done');
 
   flashEl.style.setProperty('--flash-opacity', String(0.25 + tierIdx * 0.15));
   flashEl.classList.remove('show');
@@ -1269,35 +1295,39 @@ function revealReward(item, tierIdx, fx) {
   flashEl.classList.add('show');
 
   if (tierIdx >= 2) {
-    screenEl.classList.remove('screen-reward-shake');
+    screenEl.classList.remove('screen-catch-shake');
     void screenEl.offsetWidth;
-    screenEl.classList.add('screen-reward-shake');
+    screenEl.classList.add('screen-catch-shake');
   }
 
-  raysEl.className = `reward-rays show rarity-${item.rarity}`;
-  spawnRewardParticles(item.rarity, fx.particles);
+  raysEl.className = `fishing-rays show rarity-${fish.rarity}`;
+  spawnSplashDroplets(fish.rarity, fx.droplets);
 
-  cardEl.className = `reward-card ${meta.className} show`;
+  $('#fishing-caption').textContent = tierIdx >= 4 ? '🎉 でんせつの 大物を つりあげた!!!' : '🎣 つれた!';
+  cardEl.className = `fish-card ${meta.className} show`;
   cardEl.innerHTML = `
-    <div class="reward-icon">${item.icon}</div>
-    <div class="reward-name">${item.name}</div>
-    <div class="reward-rarity">${meta.label}</div>
+    <div class="fish-icon">${fish.icon}</div>
+    <div class="fish-name">${fish.name}</div>
+    <div class="fish-size">${sizeCm}cm</div>
+    <div class="fish-rarity">${meta.label}</div>
+    <div class="fish-note">${entry.count === 1 ? '✨ はじめて つったよ!' : (isNewRecord ? '📏 じこさいだいサイズ!' : `つった数 ${entry.count}ひき`)}</div>
   `;
   cardEl.style.display = 'flex';
 }
 
-function spawnRewardParticles(rarity, count) {
-  const container = $('#reward-particles');
+function spawnSplashDroplets(rarity, count) {
+  const container = $('#fishing-splash');
   container.innerHTML = '';
-  const colors = PARTICLE_COLORS_BY_RARITY[rarity];
+  const colors = DROPLET_COLORS_BY_RARITY[rarity];
   for (let i = 0; i < count; i++) {
     const el = document.createElement('div');
-    el.className = 'particle';
-    const angle = Math.random() * Math.PI * 2;
-    const dist = 50 + Math.random() * 70;
-    const size = 5 + Math.random() * 5;
+    el.className = 'droplet';
+    // 水しぶきなので、横に散りつつ上に飛ぶ比率を高くする
+    const angle = Math.PI + Math.random() * Math.PI;
+    const dist = 55 + Math.random() * 75;
+    const size = 5 + Math.random() * 6;
     el.style.setProperty('--tx', `${Math.cos(angle) * dist}px`);
-    el.style.setProperty('--ty', `${Math.sin(angle) * dist}px`);
+    el.style.setProperty('--ty', `${Math.sin(angle) * dist * 0.85}px`);
     el.style.setProperty('--rot', `${Math.round(Math.random() * 720 - 360)}deg`);
     el.style.setProperty('--particle-delay', `${(Math.random() * 0.15).toFixed(2)}s`);
     el.style.width = `${size}px`;

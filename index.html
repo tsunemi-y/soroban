@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
-<title>そろばんクラフト - フラッシュ&よみあげ暗算</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><rect width=%228%22 height=%228%22 fill=%22%235d9c3f%22/><rect x=%228%22 width=%228%22 height=%228%22 fill=%22%233f7d20%22/><rect y=%228%22 width=%228%22 height=%228%22 fill=%228b5a2b%22/><rect x=%228%22 y=%228%22 width=%228%22 height=%228%22 fill=%22%236b4423%22/></svg>">
+<title>そろばんフィッシング - フラッシュ&よみあげ暗算</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><rect width=%2216%22 height=%2216%22 fill=%22%231f84bb%22/><path d=%22M0 11h16v5H0z%22 fill=%22%230d567f%22/><circle cx=%228%22 cy=%227%22 r=%224%22 fill=%22%23fff%22/><path d=%22M4 7a4 4 0 0 1 8 0z%22 fill=%22%23e8604c%22/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -15,22 +15,23 @@
 <div id="app">
 
   <!-- タイトル画面 -->
-  <section id="screen-title" class="screen active mc-sky">
-    <div class="clouds"></div>
+  <section id="screen-title" class="screen active bg-shore">
+    <div class="waves"></div>
     <div class="title-wrap">
-      <h1 class="game-title"><span>そろばん</span><span class="accent">クラフト</span></h1>
-      <p class="subtitle">フラッシュ暗算 &amp; よみあげ暗算 &amp; よみあげそろばん &amp; そろばん &amp; ドライブモード</p>
-      <button id="btn-start" class="mc-btn mc-btn-lg">▶ はじめる</button>
-      <button id="btn-howto" class="mc-btn">? あそびかた</button>
-      <button id="btn-history" class="mc-btn">📜 きろく</button>
-      <button id="btn-inventory" class="mc-btn">🎒 アイテム</button>
+      <div class="title-float">🎣</div>
+      <h1 class="game-title"><span>そろばん</span><span class="accent">フィッシング</span></h1>
+      <p class="subtitle">計算して さかなを つろう！<br>フラッシュ暗算 &amp; よみあげ暗算 &amp; よみあげそろばん &amp; そろばん &amp; ドライブモード</p>
+      <button id="btn-start" class="fs-btn fs-btn-lg">▶ はじめる</button>
+      <button id="btn-howto" class="fs-btn">? あそびかた</button>
+      <button id="btn-history" class="fs-btn">📜 きろく</button>
+      <button id="btn-fishbook" class="fs-btn">🐟 さかなずかん</button>
     </div>
-    <div class="block-ground"></div>
+    <div class="shore-ground"></div>
   </section>
 
   <!-- あそびかた画面 -->
-  <section id="screen-howto" class="screen mc-bg-stone">
-    <div class="mc-panel howto-panel">
+  <section id="screen-howto" class="screen bg-sea">
+    <div class="fs-panel howto-panel">
       <h2 class="panel-title">あそびかた</h2>
       <ul class="howto-list">
         <li><b>フラッシュ暗算</b>：数字が つぎつぎ 画面に出るよ。ぜんぶ たし算・ひき算して、こたえを入力しよう。</li>
@@ -40,95 +41,97 @@
         <li><b>高槻選抜</b>：級のせんたくはなく、しゅもく(わり算・あんざん・そろばん)をえらんで あそぶ とくべつなモード。どのしゅもくも10問。<b>わり算</b>はそろばんモードとおなじ紙にこたえを書くやりかたで、わる数1桁→2桁と だんだんむずかしくなるよ(せいげん時間15分)。<b>あんざん</b>はよみあげ暗算とおなじやりかたで、2〜3桁・7口→3桁・10口と だんだんむずかしくなるよ。<b>そろばん</b>はよみあげそろばんとおなじやりかたで、数字を声で読み上げるから 実さいの そろばんで計算してこたえを入力しよう。見取り算だけを、4桁から8桁まで だんだん桁を ふやしながら とくよ。</li>
         <li><b>ドライブモード</b>：車で移動中など、画面を見られないときのモード。数字を読み上げたあと、少し間をおいてこたえも読み上げるから、耳だけで正しいか確認できるよ。問題は「とめる」を押すまでずっと続くよ。むずかしさはよみあげ暗算とおなじだよ。</li>
         <li>級(きゅう)を えらぶと、むずかしさが変わるよ。数字が大きい級ほど やさしくて、1級がいちばん むずかしいよ。7級はフラッシュ暗算だけの、いちばんやさしい級だよ。そろばんモードには「準3級・準2級・準1級」という、ひとつ下の級とひとつ上の級のあいだの むずかしさの級もあるよ。フラッシュ暗算には1級よりもっとむずかしい「初段〜5段」もあるよ。</li>
+        <li><b>🎣 つり</b>：合格すると さかなが かかるよ！ウキをタップして さおを上げると、1ぴき つりあげられる。<b>正かい数が多いほど・むずかしい級ほど</b>、シーラカンスや リュウグウノツカイみたいな でんせつの大物が かかりやすくなるよ。つった さかなは「さかなずかん」にたまっていって、おなじ さかなでも 大きさ(cm)は 毎回ちがうから、じこさいだいサイズを ねらってみよう。</li>
       </ul>
-      <button class="mc-btn back-btn" data-back="screen-title">もどる</button>
+      <button class="fs-btn back-btn" data-back="screen-title">もどる</button>
     </div>
   </section>
 
   <!-- きろく画面 -->
-  <section id="screen-history" class="screen mc-bg-stone">
-    <div class="mc-panel history-panel">
+  <section id="screen-history" class="screen bg-sea">
+    <div class="fs-panel history-panel">
       <h2 class="panel-title">きろく</h2>
       <div id="history-list" class="history-list"></div>
       <div class="result-btns">
-        <button id="btn-history-csv" class="mc-btn">⬇ CSVでダウンロード</button>
-        <button id="btn-history-clear" class="mc-btn">きろくをけす</button>
-        <button class="mc-btn back-btn" data-back="screen-title">もどる</button>
+        <button id="btn-history-csv" class="fs-btn">⬇ CSVでダウンロード</button>
+        <button id="btn-history-clear" class="fs-btn">きろくをけす</button>
+        <button class="fs-btn back-btn" data-back="screen-title">もどる</button>
       </div>
     </div>
   </section>
 
-  <!-- アイテム一覧画面 -->
-  <section id="screen-inventory" class="screen mc-bg-stone">
-    <div class="mc-panel inventory-panel">
-      <h2 class="panel-title">アイテム</h2>
+  <!-- さかなずかん画面 -->
+  <section id="screen-fishbook" class="screen bg-sea">
+    <div class="fs-panel fishbook-panel">
+      <h2 class="panel-title">さかなずかん</h2>
+      <p id="fishbook-progress" class="fishbook-progress"></p>
       <div id="rarity-legend" class="rarity-legend"></div>
-      <div id="inventory-list" class="inventory-list"></div>
-      <button class="mc-btn back-btn" data-back="screen-title">もどる</button>
+      <div id="fishbook-list" class="fishbook-list"></div>
+      <button class="fs-btn back-btn" data-back="screen-title">もどる</button>
     </div>
   </section>
 
   <!-- モード選択画面 -->
-  <section id="screen-mode" class="screen mc-bg-stone">
+  <section id="screen-mode" class="screen bg-sea">
     <h2 class="panel-title">モードを えらぼう</h2>
     <div class="mode-grid">
-      <button class="mc-btn mode-btn" data-mode="flash">
+      <button class="fs-btn mode-btn" data-mode="flash">
         <span class="mode-icon">⚡</span>
         <span>フラッシュ暗算</span>
       </button>
-      <button class="mc-btn mode-btn" data-mode="yomiage">
+      <button class="fs-btn mode-btn" data-mode="yomiage">
         <span class="mode-icon">🔊</span>
         <span>よみあげ暗算</span>
       </button>
-      <button class="mc-btn mode-btn" data-mode="yomiageSoroban">
+      <button class="fs-btn mode-btn" data-mode="yomiageSoroban">
         <span class="mode-icon">🔊🧮</span>
         <span>よみあげそろばん</span>
       </button>
-      <button class="mc-btn mode-btn" data-mode="soroban">
+      <button class="fs-btn mode-btn" data-mode="soroban">
         <span class="mode-icon">🧮</span>
         <span>そろばん</span>
       </button>
-      <button class="mc-btn mode-btn" data-mode="takatsuki">
+      <button class="fs-btn mode-btn" data-mode="takatsuki">
         <span class="mode-icon">🎯</span>
         <span>高槻選抜</span>
       </button>
-      <button class="mc-btn mode-btn" data-mode="drive">
+      <button class="fs-btn mode-btn" data-mode="drive">
         <span class="mode-icon">🚗</span>
         <span>ドライブモード</span>
       </button>
     </div>
-    <button class="mc-btn back-btn" data-back="screen-title">もどる</button>
+    <button class="fs-btn back-btn" data-back="screen-title">もどる</button>
   </section>
 
   <!-- 高槻選抜 種目選択画面 -->
-  <section id="screen-takatsuki" class="screen mc-bg-stone">
+  <section id="screen-takatsuki" class="screen bg-sea">
     <h2 class="panel-title">高槻選抜 しゅもくを えらぼう</h2>
     <div class="mode-grid">
-      <button id="btn-takatsuki-wari" class="mc-btn mode-btn">
+      <button id="btn-takatsuki-wari" class="fs-btn mode-btn">
         <span class="mode-icon">➗</span>
         <span>わり算</span>
       </button>
-      <button id="btn-takatsuki-yomiage" class="mc-btn mode-btn">
+      <button id="btn-takatsuki-yomiage" class="fs-btn mode-btn">
         <span class="mode-icon">🔊</span>
         <span>あんざん</span>
       </button>
-      <button id="btn-takatsuki-mitori" class="mc-btn mode-btn">
+      <button id="btn-takatsuki-mitori" class="fs-btn mode-btn">
         <span class="mode-icon">🔊🧮</span>
         <span>そろばん</span>
       </button>
     </div>
-    <button id="btn-takatsuki-print" class="mc-btn">📝 わり算プリントをつくる</button>
-    <button class="mc-btn back-btn" data-back="screen-mode">もどる</button>
+    <button id="btn-takatsuki-print" class="fs-btn">📝 わり算プリントをつくる</button>
+    <button class="fs-btn back-btn" data-back="screen-mode">もどる</button>
   </section>
 
   <!-- 高槻選抜プリント画面 -->
-  <section id="screen-print" class="screen mc-bg-stone">
-    <div class="mc-panel print-panel">
+  <section id="screen-print" class="screen bg-sea">
+    <div class="fs-panel print-panel">
       <h2 class="panel-title no-print">高槻選抜プリント</h2>
       <div class="print-toolbar no-print">
-        <button id="btn-print-regenerate" class="mc-btn">🔄 もんだいを作りなおす</button>
-        <button id="btn-print-go" class="mc-btn">🖨 印刷する</button>
-        <button class="mc-btn back-btn" data-back="screen-takatsuki">もどる</button>
+        <button id="btn-print-regenerate" class="fs-btn">🔄 もんだいを作りなおす</button>
+        <button id="btn-print-go" class="fs-btn">🖨 印刷する</button>
+        <button class="fs-btn back-btn" data-back="screen-takatsuki">もどる</button>
       </div>
       <p class="print-hint no-print">2まいぶん(1まいめ・2まいめ)を作るよ。プリンターの設定を「両面印刷」にすると、紙1まいの表と裏になるよ。</p>
       <div id="print-sheets" class="print-sheets"></div>
@@ -136,16 +139,16 @@
   </section>
 
   <!-- 級選択画面 -->
-  <section id="screen-level" class="screen mc-bg-stone">
+  <section id="screen-level" class="screen bg-sea">
     <h2 class="panel-title">きゅうを えらぼう <span id="level-mode-badge" class="badge"></span></h2>
     <div id="level-grid" class="level-grid"></div>
-    <button class="mc-btn back-btn" data-back="screen-mode">もどる</button>
+    <button class="fs-btn back-btn" data-back="screen-mode">もどる</button>
   </section>
 
   <!-- プレイ画面 -->
-  <section id="screen-play" class="screen mc-bg-night">
+  <section id="screen-play" class="screen bg-deep">
     <div class="hud">
-      <button id="btn-quit" class="mc-btn hud-quit">✕ やめる</button>
+      <button id="btn-quit" class="fs-btn hud-quit">✕ やめる</button>
       <div class="hud-info">
         <span id="hud-progress" class="hud-item">1 / 10</span>
         <span id="hud-score" class="hud-item">⭐ 0</span>
@@ -167,22 +170,22 @@
       <div id="countdown" class="countdown"></div>
 
       <!-- 解答パネル -->
-      <div id="answer-panel" class="mc-panel answer-panel">
+      <div id="answer-panel" class="fs-panel answer-panel">
         <p class="answer-label">こたえは？</p>
         <div id="answer-display" class="answer-display">0</div>
         <div class="keypad">
-          <button class="mc-btn key" data-key="7">7</button>
-          <button class="mc-btn key" data-key="8">8</button>
-          <button class="mc-btn key" data-key="9">9</button>
-          <button class="mc-btn key" data-key="4">4</button>
-          <button class="mc-btn key" data-key="5">5</button>
-          <button class="mc-btn key" data-key="6">6</button>
-          <button class="mc-btn key" data-key="1">1</button>
-          <button class="mc-btn key" data-key="2">2</button>
-          <button class="mc-btn key" data-key="3">3</button>
-          <button id="key-clear" class="mc-btn key key-func">C</button>
-          <button class="mc-btn key" data-key="0">0</button>
-          <button id="key-enter" class="mc-btn key key-func key-enter">決定</button>
+          <button class="fs-btn key" data-key="7">7</button>
+          <button class="fs-btn key" data-key="8">8</button>
+          <button class="fs-btn key" data-key="9">9</button>
+          <button class="fs-btn key" data-key="4">4</button>
+          <button class="fs-btn key" data-key="5">5</button>
+          <button class="fs-btn key" data-key="6">6</button>
+          <button class="fs-btn key" data-key="1">1</button>
+          <button class="fs-btn key" data-key="2">2</button>
+          <button class="fs-btn key" data-key="3">3</button>
+          <button id="key-clear" class="fs-btn key key-func">C</button>
+          <button class="fs-btn key" data-key="0">0</button>
+          <button id="key-enter" class="fs-btn key key-func key-enter">決定</button>
         </div>
       </div>
     </div>
@@ -192,9 +195,9 @@
   </section>
 
   <!-- そろばんモード プレイ画面 -->
-  <section id="screen-soroban-play" class="screen mc-bg-night">
+  <section id="screen-soroban-play" class="screen bg-deep">
     <div class="hud">
-      <button id="sb-btn-quit" class="mc-btn hud-quit">✕ やめる</button>
+      <button id="sb-btn-quit" class="fs-btn hud-quit">✕ やめる</button>
       <div class="hud-info">
         <span id="sb-hud-progress" class="hud-item">1 / 10</span>
         <span id="sb-hud-timer" class="hud-item hud-timer">⏱ 10:00</span>
@@ -208,21 +211,21 @@
 
       <!-- 閲覧用ナビ(こたえは入力せず、次へ・戻るだけ) -->
       <div id="sb-nav-panel" class="sb-nav-panel">
-        <button id="sb-btn-back" class="mc-btn sb-nav-btn">◀ もどる</button>
-        <button id="sb-btn-next" class="mc-btn sb-nav-btn sb-nav-btn-next">つぎへ ▶</button>
+        <button id="sb-btn-back" class="fs-btn sb-nav-btn">◀ もどる</button>
+        <button id="sb-btn-next" class="fs-btn sb-nav-btn sb-nav-btn-next">つぎへ ▶</button>
       </div>
 
       <!-- まとめてこたえ入力パネル(最後まで進んだ or 時間切れのときに表示) -->
-      <div id="sb-entry-panel" class="mc-panel sb-entry-panel">
+      <div id="sb-entry-panel" class="fs-panel sb-entry-panel">
         <p class="answer-label">紙に書いたこたえを ぜんぶ入力してね</p>
         <div id="sb-entry-list" class="sb-entry-list"></div>
-        <button id="sb-btn-grade" class="mc-btn sb-btn-grade">✔ さいてんする</button>
+        <button id="sb-btn-grade" class="fs-btn sb-btn-grade">✔ さいてんする</button>
       </div>
     </div>
   </section>
 
   <!-- ドライブモード プレイ画面(耳だけで練習。問題→こたえの順に無限に読み上げつづける) -->
-  <section id="screen-drive-play" class="screen mc-bg-night">
+  <section id="screen-drive-play" class="screen bg-deep">
     <div class="hud">
       <div class="hud-info">
         <span id="drive-hud-count" class="hud-item">1問目</span>
@@ -235,41 +238,46 @@
         <div class="speaker-icon">🔊</div>
         <p id="drive-status">よみあげちゅう…</p>
       </div>
-      <button id="drive-btn-stop" class="mc-btn mc-btn-lg drive-stop-btn">■ とめる</button>
+      <button id="drive-btn-stop" class="fs-btn fs-btn-lg drive-stop-btn">■ とめる</button>
     </div>
   </section>
 
   <!-- 結果画面 -->
-  <section id="screen-result" class="screen mc-bg-night">
-    <div class="mc-panel result-panel">
+  <section id="screen-result" class="screen bg-deep">
+    <div class="fs-panel result-panel">
       <h2 class="panel-title">けっか</h2>
       <p id="result-score" class="result-score"></p>
       <p id="result-pass" class="result-pass"></p>
       <div id="result-sections" class="result-sections"></div>
       <p id="result-best" class="result-best"></p>
       <div class="result-btns">
-        <button id="btn-retry" class="mc-btn">もう一度</button>
-        <button id="btn-to-mode" class="mc-btn">モードを変える</button>
-        <button id="btn-to-title" class="mc-btn">タイトルへ</button>
+        <button id="btn-retry" class="fs-btn">もう一度</button>
+        <button id="btn-to-mode" class="fs-btn">モードを変える</button>
+        <button id="btn-to-title" class="fs-btn">タイトルへ</button>
       </div>
     </div>
   </section>
 
-  <!-- 合格ごほうび画面 -->
-  <section id="screen-reward" class="screen mc-bg-night">
-    <div class="reward-stage">
-      <p class="reward-caption">合格おめでとう！ごほうびアイテムをゲット！</p>
-      <div class="reward-pack-area">
-        <div id="reward-rays" class="reward-rays"></div>
-        <div id="reward-particles" class="reward-particles"></div>
-        <div id="reward-pack" class="reward-pack">
-          <span class="reward-pack-label">タップして あける</span>
+  <!-- 合格したら1ぴき釣れる 釣り演出画面 -->
+  <section id="screen-fishing" class="screen bg-deep">
+    <div class="fishing-stage">
+      <p id="fishing-caption" class="fishing-caption">ウキが しずんだ! タップして さおを 上げよう!</p>
+      <div class="fishing-area">
+        <div class="fishing-water"></div>
+        <div id="fishing-ripples" class="fishing-ripples"></div>
+        <div id="fishing-rays" class="fishing-rays"></div>
+        <div id="fishing-splash" class="fishing-splash"></div>
+        <div id="fishing-float" class="fishing-float">
+          <div class="float-rod">🎣</div>
+          <div class="float-line"></div>
+          <div class="float-body"></div>
         </div>
-        <div id="reward-card" class="reward-card"></div>
+        <div id="fish-card" class="fish-card"></div>
       </div>
-      <button id="btn-reward-next" class="mc-btn">けっかを みる</button>
+      <p id="fishing-hint" class="float-label">タップして さおを 上げる</p>
+      <button id="btn-fishing-next" class="fs-btn">けっかを みる</button>
     </div>
-    <div id="reward-flash" class="reward-flash"></div>
+    <div id="fishing-flash" class="fishing-flash"></div>
   </section>
 
 </div>

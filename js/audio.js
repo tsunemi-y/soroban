@@ -112,18 +112,25 @@ const SoundFX = (() => {
       beep(440, 0.08, 'square', 0.12, 0);
       beep(660, 0.12, 'square', 0.12, 0.1);
     },
-    // ごほうびパックの「たまり」演出音。レアリティが高いほど長く高く上がっていく
-    packCharge(rarity) {
+    // 魚とのやりとり(リールを巻く音)。すごい魚ほど長く・高く きしんでいく
+    reelFight(rarity) {
       const idx = Math.max(0, RARITY_TIERS.indexOf(rarity));
       const t = idx / (RARITY_TIERS.length - 1);
-      const duration = 0.25 + t * 0.85;
-      sweep(180, 180 + t * 620, duration, 'sawtooth', 0.05 + t * 0.05);
+      const duration = 0.35 + t * 1.3;
+      // ラチェット音のかわりに、細かいクリックを連打しながら音程を上げていく
+      const clicks = 6 + idx * 5;
+      for (let i = 0; i < clicks; i++) {
+        beep(300 + i * (18 + idx * 6), 0.03, 'square', 0.05 + t * 0.03, (duration / clicks) * i);
+      }
+      sweep(140, 140 + t * 420, duration, 'sawtooth', 0.04 + t * 0.04);
     },
-    // ごほうびパックの開封音。レアリティが高いほど和音が増えて豪華になる
-    packBurst(rarity) {
+    // 魚が水面から飛び出す「バシャン!」。すごい魚ほど しぶきが大きく、和音も豪華になる
+    splash(rarity) {
       const idx = Math.max(0, RARITY_TIERS.indexOf(rarity));
-      impact(0.3 + idx * 0.08, 0.18 + idx * 0.04, 1400 - idx * 150);
-      BURST_NOTES[idx].forEach((freq, i) => beep(freq, 0.22, 'square', 0.15, 0.08 + i * 0.07));
+      // ノイズを2連発して水しぶきらしくする
+      impact(0.35 + idx * 0.1, 0.2 + idx * 0.04, 2600 - idx * 180);
+      impact(0.25 + idx * 0.08, 0.12 + idx * 0.03, 1500 - idx * 120, 0.08);
+      BURST_NOTES[idx].forEach((freq, i) => beep(freq, 0.22, 'triangle', 0.14, 0.14 + i * 0.07));
     },
   };
 })();
